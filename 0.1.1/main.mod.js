@@ -5,20 +5,24 @@ import {
 
 class MobileSupportMod extends PolyMod {
   init = (pml) => {
-    pml.registerChunkMixin("112", {
+    pml.registerChunkMixin("792", {
       type: MixinType.INSERT,
-      token: "k.appendChild(C));",
+      token: `m.appendChild(e),
+                  (0, R.gn)(this, ui, "f").push(e),
+                  (0, R.GG)(this, hi, e, "f"),`,
       func: `
         {
           const button = document.createElement("button");
+
           button.className = "button";
-          button.textContent = "MOBILE SUPPORT TEST";
+          button.textContent = "CUSTOMIZE CONTROLS";
 
           button.addEventListener("click", () => {
-            console.log("[Mobile Support Mod] BUTTON CLICKED");
+            console.log("[Mobile Support Mod] CUSTOMIZE CONTROLS CLICKED");
           });
 
-          k.appendChild(button);
+          m.appendChild(button);
+          (0, R.gn)(this, ui, "f").push(button);
         }
       `,
     });
