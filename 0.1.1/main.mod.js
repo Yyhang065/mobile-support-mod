@@ -5,7 +5,7 @@ import {
 
 class MobileSupportMod extends PolyMod {
   init = (pml) => {
-    pml.registerChunkMixin("792", {
+    pml.registerGlobalMixin({
       type: MixinType.INSERT,
       token: `m.appendChild(e),
                   (0, R.gn)(this, ui, "f").push(e),
