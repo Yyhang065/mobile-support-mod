@@ -8,8 +8,7 @@ class MobileSupportMod extends PolyMod {
     pml.registerGlobalMixin({
       type: MixinType.INSERT,
       token: `m.appendChild(e),
-                  (0, R.gn)(this, ui, "f").push(e),
-                  (0, R.GG)(this, hi, e, "f"),`,
+                  (0, R.gn)(this, ui, "f").push(e),`,
       func: `
         {
           const button = document.createElement("button");
@@ -22,7 +21,6 @@ class MobileSupportMod extends PolyMod {
           });
 
           m.appendChild(button);
-          (0, R.gn)(this, ui, "f").push(button);
         }
       `,
     });
