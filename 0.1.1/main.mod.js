@@ -1,26 +1,42 @@
-import {
-  PolyMod,
-  MixinType,
-} from "https://cdn.polymodloader.com/cb/PolyTrackMods/PolyModLoader/0.6.2/PolyTypes.js";
+import { PolyMod } from "https://cdn.polymodloader.com/cb/PolyTrackMods/PolyModLoader/0.6.2/PolyTypes.js";
 
 class MobileSupportMod extends PolyMod {
-  init = (pml) => {
-    pml.registerChunkMixin("112", {
-      type: MixinType.INSERT,
-      token: "k.appendChild(C));",
-      func: `
-        {
-          const button = document.createElement("button");
-          button.className = "button";
-          button.textContent = "TEST BUTTON";
+  postInit = () => {
+    const addButton = () => {
+      const container = document.querySelector(
+        ".game-toolbar-ui > .button-container"
+      );
 
-          button.addEventListener("click", () => {
-            console.log("[Mobile Support Mod] BUTTON CLICKED");
-          });
+      if (!container) return;
 
-          k.appendChild(button);
-        }
-      `,
+      if (container.querySelector(".mobile-support-button")) return;
+
+      const button = document.createElement("button");
+      button.className = "button mobile-support-button";
+      button.textContent = "TEST";
+
+      button.addEventListener("click", () => {
+        console.log("[Mobile Support Mod] TEST BUTTON CLICKED");
+      });
+
+      const watchButton = container.querySelector(
+        'button:has(img[src="images/preview.svg"])'
+      );
+
+      if (watchButton) {
+        watchButton.after(button);
+      } else {
+        container.appendChild(button);
+      }
+    };
+
+    addButton();
+
+    const observer = new MutationObserver(addButton);
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
     });
   };
 }
