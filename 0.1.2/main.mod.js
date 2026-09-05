@@ -13,7 +13,7 @@ class MobileSupportMod extends PolyMod {
 
       const button = document.createElement("button");
       button.className = "button mobile-support-button";
-      button.textContent = "Edit Mobile Controls";
+      button.textContent = "Edit Mobile";
 
       button.addEventListener("click", () => {
         openControlsMenu();
@@ -57,7 +57,7 @@ class MobileSupportMod extends PolyMod {
 
       menu.innerHTML = `
         <div class="mobile-support-panel">
-          <div class="mobile-support-title">Mobile Controls</div>
+          <div class="mobile-support-title">Edit Mobile</div>
 
           <label>
             Size:
@@ -101,8 +101,9 @@ class MobileSupportMod extends PolyMod {
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          z-index: 99999;
-          pointer-events: auto;
+          z-index: 999999;
+          pointer-events: auto !important;
+          touch-action: auto !important;
         }
 
         .mobile-support-panel {
@@ -112,9 +113,13 @@ class MobileSupportMod extends PolyMod {
           border: 2px solid var(--button-color, #555);
           border-radius: 8px;
           font-family: inherit;
+          color: white;
+          pointer-events: auto !important;
+          touch-action: auto !important;
         }
 
         .mobile-support-title {
+          color: white;
           font-size: 24px;
           margin-bottom: 20px;
         }
@@ -123,15 +128,31 @@ class MobileSupportMod extends PolyMod {
           display: block;
           margin-top: 12px;
           margin-bottom: 6px;
+          color: white;
         }
 
-        .mobile-support-panel input {
+        .mobile-support-panel label span {
+          color: white;
+        }
+
+        .mobile-support-panel input[type="range"] {
+          display: block;
           width: 100%;
+          height: 24px;
+          margin: 0;
+          pointer-events: auto !important;
+          touch-action: pan-y !important;
+          cursor: pointer;
+          position: relative;
+          z-index: 1000000;
         }
 
         #mobile-close-button {
           margin-top: 20px;
           width: 100%;
+          color: white;
+          pointer-events: auto !important;
+          touch-action: manipulation !important;
         }
       `;
 
