@@ -7,8 +7,7 @@ class MobileSupportMod extends PolyMod {
   init = (pml) => {
     pml.registerGlobalMixin({
       type: MixinType.INSERT,
-      token: `m.appendChild(e),
-                  (0, R.gn)(this, ui, "f").push(e),`,
+      token: `e.append(document.createTextNode(n.get("Watch"))),`,
       func: `
         {
           const button = document.createElement("button");
