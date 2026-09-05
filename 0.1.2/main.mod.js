@@ -13,7 +13,7 @@ class MobileSupportMod extends PolyMod {
 
       const button = document.createElement("button");
       button.className = "button mobile-support-button";
-      button.textContent = "Mobile Controls";
+      button.textContent = "Edit Mobile Controls";
 
       button.addEventListener("click", () => {
         openControlsMenu();
