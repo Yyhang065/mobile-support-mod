@@ -49,49 +49,129 @@ class MobileSupportMod extends PolyMod {
       });
     };
 
+    const createSlider = (parent, min, max, value, onChange) => {
+      const slider = document.createElement("div");
+      slider.className = "mobile-support-slider";
+
+      const track = document.createElement("div");
+      track.className = "mobile-support-slider-track";
+
+      const fill = document.createElement("div");
+      fill.className = "mobile-support-slider-fill";
+
+      const knob = document.createElement("div");
+      knob.className = "mobile-support-slider-knob";
+
+      track.appendChild(fill);
+      track.appendChild(knob);
+      slider.appendChild(track);
+      parent.appendChild(slider);
+
+      let currentValue = value;
+      let dragging = false;
+
+      const updateFromPosition = (clientX) => {
+        const rect = track.getBoundingClientRect();
+
+        let percentage = (clientX - rect.left) / rect.width;
+        percentage = Math.max(0, Math.min(1, percentage));
+
+        currentValue = min + percentage * (max - min);
+
+        fill.style.width = `${percentage * 100}%`;
+        knob.style.left = `${percentage * 100}%`;
+
+        onChange(currentValue);
+      };
+
+      const startDrag = (event) => {
+        dragging = true;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const touch = event.touches ? event.touches[0] : event;
+        updateFromPosition(touch.clientX);
+      };
+
+      const moveDrag = (event) => {
+        if (!dragging) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const touch = event.touches ? event.touches[0] : event;
+        updateFromPosition(touch.clientX);
+      };
+
+      const endDrag = (event) => {
+        dragging = false;
+
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      };
+
+      slider.addEventListener("mousedown", startDrag);
+      document.addEventListener("mousemove", moveDrag);
+      document.addEventListener("mouseup", endDrag);
+
+      slider.addEventListener("touchstart", startDrag, {
+        passive: false,
+      });
+
+      document.addEventListener("touchmove", moveDrag, {
+        passive: false,
+      });
+
+      document.addEventListener("touchend", endDrag, {
+        passive: false,
+      });
+
+      const initialPercentage =
+        ((value - min) / (max - min)) * 100;
+
+      fill.style.width = `${initialPercentage}%`;
+      knob.style.left = `${initialPercentage}%`;
+
+      return slider;
+    };
+
     const openControlsMenu = () => {
       if (document.querySelector(".mobile-support-menu")) return;
 
       const menu = document.createElement("div");
       menu.className = "mobile-support-menu";
 
-      menu.innerHTML = `
-        <div class="mobile-support-panel">
-          <div class="mobile-support-title">Edit Mobile</div>
+      const panel = document.createElement("div");
+      panel.className = "mobile-support-panel";
 
-          <label>
-            Size:
-            <span id="mobile-size-value">100%</span>
-          </label>
-
-          <input
-            id="mobile-size-slider"
-            type="range"
-            min="0.5"
-            max="1.5"
-            step="0.05"
-            value="1"
-          >
-
-          <label>
-            Opacity:
-            <span id="mobile-opacity-value">60%</span>
-          </label>
-
-          <input
-            id="mobile-opacity-slider"
-            type="range"
-            min="0.1"
-            max="1"
-            step="0.05"
-            value="0.6"
-          >
-
-          <button id="mobile-close-button" class="button">
-            Close
-          </button>
+      panel.innerHTML = `
+        <div class="mobile-support-title">
+          Edit Mobile
         </div>
+
+        <div class="mobile-support-label">
+          Size:
+          <span id="mobile-size-value">100%</span>
+        </div>
+
+        <div id="mobile-size-slider"></div>
+
+        <div class="mobile-support-label">
+          Opacity:
+          <span id="mobile-opacity-value">60%</span>
+        </div>
+
+        <div id="mobile-opacity-slider"></div>
+
+        <button id="mobile-close-button" class="button">
+          Close
+        </button>
       `;
+
+      menu.appendChild(panel);
 
       const style = document.createElement("style");
 
@@ -103,7 +183,7 @@ class MobileSupportMod extends PolyMod {
           transform: translate(-50%, -50%);
           z-index: 999999;
           pointer-events: auto !important;
-          touch-action: auto !important;
+          touch-action: none !important;
         }
 
         .mobile-support-panel {
@@ -115,7 +195,9 @@ class MobileSupportMod extends PolyMod {
           font-family: inherit;
           color: white;
           pointer-events: auto !important;
-          touch-action: auto !important;
+          touch-action: none !important;
+          user-select: none;
+          -webkit-user-select: none;
         }
 
         .mobile-support-title {
@@ -124,27 +206,57 @@ class MobileSupportMod extends PolyMod {
           margin-bottom: 20px;
         }
 
-        .mobile-support-panel label {
+        .mobile-support-label {
           display: block;
           margin-top: 12px;
-          margin-bottom: 6px;
+          margin-bottom: 8px;
+          color: white;
+          font-size: 16px;
+        }
+
+        .mobile-support-label span {
           color: white;
         }
 
-        .mobile-support-panel label span {
-          color: white;
-        }
-
-        .mobile-support-panel input[type="range"] {
-          display: block;
+        .mobile-support-slider {
           width: 100%;
-          height: 24px;
-          margin: 0;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          touch-action: none !important;
           pointer-events: auto !important;
-          touch-action: pan-y !important;
-          cursor: pointer;
           position: relative;
-          z-index: 1000000;
+        }
+
+        .mobile-support-slider-track {
+          position: relative;
+          width: 100%;
+          height: 8px;
+          background: rgba(255, 255, 255, 0.25);
+          border-radius: 4px;
+          pointer-events: auto !important;
+        }
+
+        .mobile-support-slider-fill {
+          position: absolute;
+          left: 0;
+          top: 0;
+          height: 100%;
+          width: 0%;
+          background: white;
+          border-radius: 4px;
+          pointer-events: none;
+        }
+
+        .mobile-support-slider-knob {
+          position: absolute;
+          top: 50%;
+          width: 20px;
+          height: 20px;
+          transform: translate(-50%, -50%);
+          background: white;
+          border-radius: 50%;
+          pointer-events: none;
         }
 
         #mobile-close-button {
@@ -159,46 +271,56 @@ class MobileSupportMod extends PolyMod {
       document.head.appendChild(style);
       document.body.appendChild(menu);
 
-      const sizeSlider = menu.querySelector("#mobile-size-slider");
-      const opacitySlider = menu.querySelector("#mobile-opacity-slider");
+      const sizeValue = panel.querySelector(
+        "#mobile-size-value"
+      );
 
-      const sizeValue = menu.querySelector("#mobile-size-value");
-      const opacityValue = menu.querySelector("#mobile-opacity-value");
+      const opacityValue = panel.querySelector(
+        "#mobile-opacity-value"
+      );
 
-      sizeSlider.addEventListener("input", () => {
-        const size = Number(sizeSlider.value);
+      createSlider(
+        panel.querySelector("#mobile-size-slider"),
+        0.5,
+        1.5,
+        1,
+        (value) => {
+          sizeValue.textContent =
+            `${Math.round(value * 100)}%`;
 
-        sizeValue.textContent = `${Math.round(size * 100)}%`;
-
-        applySettings(
-          size,
-          Number(opacitySlider.value)
-        );
-      });
-
-      opacitySlider.addEventListener("input", () => {
-        const opacity = Number(opacitySlider.value);
-
-        opacityValue.textContent = `${Math.round(opacity * 100)}%`;
-
-        applySettings(
-          Number(sizeSlider.value),
-          opacity
-        );
-      });
-
-      menu.querySelector("#mobile-close-button").addEventListener(
-        "click",
-        () => {
-          menu.remove();
-          style.remove();
+          applySettings(
+            value,
+            Number(opacityValue.dataset.value || 0.6)
+          );
         }
       );
 
-      applySettings(
-        Number(sizeSlider.value),
-        Number(opacitySlider.value)
+      opacityValue.dataset.value = "0.6";
+
+      createSlider(
+        panel.querySelector("#mobile-opacity-slider"),
+        0.1,
+        1,
+        0.6,
+        (value) => {
+          opacityValue.dataset.value = value;
+
+          opacityValue.textContent =
+            `${Math.round(value * 100)}%`;
+
+          applySettings(
+            1,
+            value
+          );
+        }
       );
+
+      panel.querySelector(
+        "#mobile-close-button"
+      ).addEventListener("click", () => {
+        menu.remove();
+        style.remove();
+      });
     };
 
     addButton();
