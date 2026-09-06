@@ -3,8 +3,9 @@ Polytrack mobile support mod which customises Polymodloader for more mobile feat
 
 | Version   | Name                                                                                            |
 | --------- | ----------------------------------------------------------------------------------------------- |
-| **0.1.0** | **Working Test Button**                                                                         |
-| **0.1.1** | **Working Edit Mobile Button**                                                                  |
+| **0.1.0** | **(Not Working) Test Button Injection in Editor**                
+|
+| **0.1.1** | **(Not Working) Test Button Injection in Play menu**                                                                  |
 | **0.1.2** | **Working Basic Mobile Menu with Size and Opacity Customisation**                               |
 | **0.1.3** | **Working Black Menu with Opacity and Size Customisation**                                      |
 | **0.1.4** | **Polished Menu with PolyTrack-Style Sliders**                                                  |
