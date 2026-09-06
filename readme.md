@@ -4,7 +4,7 @@ A PolyTrack mobile support mod which customises PolyModLoader with more mobile f
 
 ## Version History
 
-### 0.2.3
+### 0.2.3 (Not Working)
 **Layout Menu with Position Editing, Saved Layouts and Transitions — Black Screen Bug**
 
 - Added saved custom layouts
@@ -48,45 +48,40 @@ A PolyTrack mobile support mod which customises PolyModLoader with more mobile f
 - Added opacity customisation
 - Custom layouts persist after reloading
 
-### 0.1.4
+### 0.1.4 (Working)
 **Polished Menu with PolyTrack-Style Sliders**
 
 - Improved menu appearance
 - Added PolyTrack-style sliders
-- Added size customisation
-- Added opacity customisation
+- Styled size customisation
+- Styled opacity customisation
 - Improved colours and layout
-- Added fade transitions
 
-### 0.1.3
-**Working Black Menu with Opacity and Size Customisation**
+### 0.1.3 (Working)
+**Black Menu with Opacity and Size Customisation**
 
 - Added working mobile customisation menu
-- Added size slider
-- Added opacity slider
 - Added black/dark menu design
-- Added mobile button customisation
 
-### 0.1.2
-**Working Basic Mobile Menu with Size and Opacity Customisation**
+### 0.1.2 (Working - Glitchy)
+**Basic Mobile Menu with Size and Opacity Customisation**
 
 - Added basic Edit Mobile menu
 - Added size customisation
 - Added opacity customisation
 - Added mobile button adjustments
 
-### 0.1.1
+### 0.1.1 (Not Working)
 **Working Edit Mobile Button**
 
-- Added Edit Mobile button
-- Added mobile-specific UI integration
-- Established the basic mobile support interface
+- Added "TEST" button
+- Established the basic mobile support interface but without correct text
 
-### 0.1.0
-**Working Test Button**
+### 0.1.0 (Not Working)
+**Test button injection in Editor**
 
 - First working version
-- Added a test button using PolyModLoader
+- Added a test button into Editor
 - Confirmed the mod could successfully modify PolyTrack's interface
 
 ---
@@ -99,8 +94,8 @@ The mod is currently being developed and tested.
 
 ## Credits
 
-**Author:** Yyhang065
+**Author:** SG | The Light
 
-**Game:** PolyTrack
+**Game:** Polytrack
 
-**Mod Loader:** PolyModLoader
+**Mod Loader:** PolyModLoader 0.6.2
