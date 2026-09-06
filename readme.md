@@ -27,7 +27,7 @@ A PolyTrack mobile support mod which customises PolyModLoader with more mobile f
 - Added layout transitions
 - Added position validation
 
-### 0.2.1
+### 0.2.1 (Working - Glitchy)
 **Working Glitchy Menu with Position Editing, Opacity and Size Customisation**
 
 - Added position editing
@@ -36,7 +36,7 @@ A PolyTrack mobile support mod which customises PolyModLoader with more mobile f
 - Added custom layout data
 - Position editing was functional but glitchy
 
-### 0.2.0
+### 0.2.0 (Working)
 **Working Layout Menu with Saved Size and Opacity Customisation**
 
 - Added layout slots
@@ -44,8 +44,6 @@ A PolyTrack mobile support mod which customises PolyModLoader with more mobile f
 - Added Custom Layout 1
 - Added Custom Layout 2
 - Added saved layouts
-- Added size customisation
-- Added opacity customisation
 - Custom layouts persist after reloading
 
 ### 0.1.4 (Working)
