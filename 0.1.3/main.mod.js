@@ -36,6 +36,18 @@ class MobileSupportMod extends PolyMod {
         button.style.opacity = currentOpacity;
         button.style.transform = "none";
       });
+
+      const resetButton = controls.querySelector(
+        ":scope > .reset"
+      );
+
+      if (resetButton) {
+        resetButton.style.backgroundSize =
+          `${32 * currentSize}px`;
+
+        resetButton.style.backgroundPosition =
+          "center";
+      }
     };
 
     const createSlider = (
