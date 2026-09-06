@@ -1,9 +1,0 @@
-<h2>Mobile Support Mod</h2>
-
-<p>
-A PolyTrack mod for customizing and improving the mobile controls.
-</p>
-
-<p>
-This is the first development version.
-</p>
