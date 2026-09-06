@@ -16,16 +16,13 @@ A PolyTrack mobile support mod which customises PolyModLoader with more mobile f
 - Added position validation
 - Known issue: pressing Play can cause the game to display a black screen
 
-### 0.2.2
+### 0.2.2 (Not Working)
 **Layout Menu with Position Editing, Saved Layouts and Transitions**
 
 - Added custom layout system
 - Added position editing
 - Added saved positions
-- Added size customisation
-- Added opacity customisation
-- Added layout transitions
-- Added position validation
+- Added menu fade-in
 
 ### 0.2.1 (Working - Glitchy)
 **Working Glitchy Menu with Position Editing, Opacity and Size Customisation**
