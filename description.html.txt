@@ -1,0 +1,9 @@
+<h2>Mobile Support Mod</h2>
+
+<p>
+A PolyTrack mod for customizing and improving the mobile controls.
+</p>
+
+<p>
+Version 0.1.4 adds a PolyTrack-inspired blue interface for the mobile control editor.
+</p>
