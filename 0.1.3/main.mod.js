@@ -175,6 +175,31 @@ class MobileSupportMod extends PolyMod {
       parent.appendChild(wrapper);
     };
 
+    const closeControlsMenu = (animate = true) => {
+      const panel = document.querySelector(
+        ".mobile-support-panel"
+      );
+
+      if (!panel) return;
+
+      if (!animate) {
+        panel.remove();
+        return;
+      }
+
+      if (panel.dataset.closing === "true") return;
+
+      panel.dataset.closing = "true";
+      panel.style.transition = "opacity 0.2s ease";
+      panel.style.opacity = "0";
+
+      setTimeout(() => {
+        if (panel.parentNode) {
+          panel.remove();
+        }
+      }, 200);
+    };
+
     const openControlsMenu = () => {
       if (document.querySelector(".mobile-support-panel")) return;
 
@@ -193,6 +218,9 @@ class MobileSupportMod extends PolyMod {
       panel.style.color = "white";
       panel.style.fontFamily = "sans-serif";
       panel.style.boxSizing = "border-box";
+
+      panel.style.opacity = "0";
+      panel.style.transition = "opacity 0.2s ease";
 
       const title = document.createElement("div");
       title.textContent = "Mobile Controls";
@@ -241,12 +269,20 @@ class MobileSupportMod extends PolyMod {
       closeButton.style.color = "white";
 
       closeButton.addEventListener("click", () => {
-        panel.remove();
+        closeControlsMenu();
       });
 
       panel.appendChild(closeButton);
 
       document.body.appendChild(panel);
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (panel.parentNode) {
+            panel.style.opacity = "1";
+          }
+        });
+      });
     };
 
     const addButton = () => {
@@ -331,6 +367,14 @@ class MobileSupportMod extends PolyMod {
     const observer = new MutationObserver(() => {
       addButton();
       applySettings();
+
+      /*
+       * If PolyTrack leaves the run and removes the gameplay
+       * controls, automatically close the Mobile Controls menu.
+       */
+      if (!getTouchControls()) {
+        closeControlsMenu(false);
+      }
     });
 
     observer.observe(document.body, {
