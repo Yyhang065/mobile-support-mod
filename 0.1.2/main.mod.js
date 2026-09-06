@@ -104,13 +104,13 @@ class MobileSupportMod extends PolyMod {
         updateFromPosition(touch.clientX);
       };
 
-   const endDrag = (event) => {
-  dragging = false;
+      const endDrag = (event) => {
+        dragging = false;
 
-  if (event) {
-    event.stopPropagation();
-  }
-};
+        if (event) {
+          event.stopPropagation();
+        }
+      };
 
       slider.addEventListener("mousedown", startDrag);
       document.addEventListener("mousemove", moveDrag);
