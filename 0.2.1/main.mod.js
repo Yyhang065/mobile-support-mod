@@ -4,7 +4,8 @@ import {
 
 class MobileSupportMod extends PolyMod {
   postInit = () => {
-    const STORAGE_KEY = "mobile-support-mod-layouts-v3";
+    const STORAGE_KEY =
+      "mobile-support-mod-layouts-v4";
 
     const DEFAULT_SIZE = 1;
     const DEFAULT_OPACITY = 0.6;
@@ -20,33 +21,44 @@ class MobileSupportMod extends PolyMod {
     };
 
     let activeMenu = null;
-    let activeMenuStyle = null;
     let closingMenu = null;
 
     const loadLayouts = () => {
       try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
+        const saved =
+          localStorage.getItem(STORAGE_KEY);
 
-          layouts = {
-            slot1: parsed?.slot1
-              ? {
-                  size: Number(parsed.slot1.size) || DEFAULT_SIZE,
-                  opacity:
-                    Number(parsed.slot1.opacity) || DEFAULT_OPACITY,
-                }
-              : null,
+        if (!saved) return;
 
-            slot2: parsed?.slot2
-              ? {
-                  size: Number(parsed.slot2.size) || DEFAULT_SIZE,
-                  opacity:
-                    Number(parsed.slot2.opacity) || DEFAULT_OPACITY,
-                }
-              : null,
-          };
-        }
+        const parsed = JSON.parse(saved);
+
+        layouts = {
+          slot1: parsed?.slot1
+            ? {
+                size:
+                  Number(parsed.slot1.size) ||
+                  DEFAULT_SIZE,
+                opacity:
+                  Number(parsed.slot1.opacity) ||
+                  DEFAULT_OPACITY,
+                positions:
+                  parsed.slot1.positions || null,
+              }
+            : null,
+
+          slot2: parsed?.slot2
+            ? {
+                size:
+                  Number(parsed.slot2.size) ||
+                  DEFAULT_SIZE,
+                opacity:
+                  Number(parsed.slot2.opacity) ||
+                  DEFAULT_OPACITY,
+                positions:
+                  parsed.slot2.positions || null,
+              }
+            : null,
+        };
       } catch {
         layouts = {
           slot1: null,
@@ -56,11 +68,16 @@ class MobileSupportMod extends PolyMod {
     };
 
     const saveLayouts = () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(layouts));
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(layouts)
+      );
     };
 
     const getTouchControls = () =>
-      document.querySelector(".touch-controls-ui");
+      document.querySelector(
+        ".touch-controls-ui"
+      );
 
     const getControls = () => {
       const root = getTouchControls();
@@ -74,13 +91,41 @@ class MobileSupportMod extends PolyMod {
       ];
     };
 
+    const getControlPositions = () => {
+      const controls = getControls();
+
+      return controls.map((control) => {
+        const rect =
+          control.getBoundingClientRect();
+
+        return {
+          left:
+            rect.left /
+            Math.max(window.innerWidth, 1),
+
+          top:
+            rect.top /
+            Math.max(window.innerHeight, 1),
+        };
+      });
+    };
+
+    const clearPositionStyles = () => {
+      getControls().forEach((control) => {
+        control.style.position = "";
+        control.style.left = "";
+        control.style.top = "";
+        control.style.right = "";
+        control.style.bottom = "";
+        control.style.margin = "";
+      });
+    };
+
     const restoreDefault = () => {
       currentSize = DEFAULT_SIZE;
       currentOpacity = DEFAULT_OPACITY;
 
-      const controls = getControls();
-
-      controls.forEach((control) => {
+      getControls().forEach((control) => {
         control.style.width = "";
         control.style.height = "";
         control.style.opacity = "";
@@ -90,80 +135,272 @@ class MobileSupportMod extends PolyMod {
         control.style.top = "";
         control.style.right = "";
         control.style.bottom = "";
+        control.style.margin = "";
         control.style.backgroundSize = "";
         control.style.backgroundPosition = "";
         control.style.outline = "";
+        control.style.cursor = "";
+      });
+    };
+
+    const applyPositions = (positions) => {
+      const controls = getControls();
+
+      if (!positions) {
+        clearPositionStyles();
+        return;
+      }
+
+      controls.forEach((control, index) => {
+        const position = positions[index];
+
+        if (!position) return;
+
+        control.style.position = "fixed";
+        control.style.left =
+          `${position.left * 100}vw`;
+        control.style.top =
+          `${position.top * 100}vh`;
+        control.style.right = "auto";
+        control.style.bottom = "auto";
+        control.style.margin = "0";
       });
     };
 
     const applySettings = () => {
       const controls = getControls();
 
+      const size = Math.max(
+        0.75,
+        Math.min(1.25, currentSize)
+      );
+
       controls.forEach((control) => {
-        const baseWidth =
-          control.tagName === "BUTTON" ? 160 : 160;
+        const finalSize = 160 * size;
 
-        const size = Math.max(
-          0.75,
-          Math.min(1.25, currentSize)
-        );
+        control.style.width =
+          `${finalSize}px`;
 
-        const finalSize = baseWidth * size;
+        control.style.height =
+          `${finalSize}px`;
 
-        control.style.width = `${finalSize}px`;
-        control.style.height = `${finalSize}px`;
-        control.style.opacity = currentOpacity;
-
-        control.style.position = "";
-        control.style.left = "";
-        control.style.top = "";
-        control.style.right = "";
-        control.style.bottom = "";
+        control.style.opacity =
+          currentOpacity;
       });
 
-      const reset = document.querySelector(
-        ".touch-controls-ui > .reset"
-      );
+      const reset =
+        document.querySelector(
+          ".touch-controls-ui > .reset"
+        );
 
       if (reset) {
         if (currentLayout === "default") {
           reset.style.backgroundSize = "";
           reset.style.backgroundPosition = "";
         } else {
-          reset.style.backgroundSize = `${32 * currentSize}px`;
-          reset.style.backgroundPosition = "center";
+          reset.style.backgroundSize =
+            `${32 * size}px`;
+
+          reset.style.backgroundPosition =
+            "center";
         }
       }
     };
 
-    const setLayout = (layoutName) => {
-      currentLayout = layoutName;
-
-      if (layoutName === "default") {
+    const applyCurrentLayout = () => {
+      if (currentLayout === "default") {
         restoreDefault();
         return;
       }
 
-      const layout = layouts[layoutName];
+      const layout =
+        layouts[currentLayout];
 
       if (!layout) {
-        currentSize = DEFAULT_SIZE;
-        currentOpacity = DEFAULT_OPACITY;
-        applySettings();
+        restoreDefault();
         return;
       }
 
       currentSize = Math.max(
         0.75,
-        Math.min(1.25, Number(layout.size) || DEFAULT_SIZE)
+        Math.min(
+          1.25,
+          Number(layout.size) ||
+            DEFAULT_SIZE
+        )
       );
 
       currentOpacity = Math.max(
         0.1,
-        Math.min(1, Number(layout.opacity) || DEFAULT_OPACITY)
+        Math.min(
+          1,
+          Number(layout.opacity) ||
+            DEFAULT_OPACITY
+        )
       );
 
       applySettings();
+      applyPositions(layout.positions);
+    };
+
+    const updatePositionForControl = (
+      control,
+      clientX,
+      clientY
+    ) => {
+      const width =
+        control.getBoundingClientRect().width;
+
+      const height =
+        control.getBoundingClientRect().height;
+
+      let left =
+        clientX - width / 2;
+
+      let top =
+        clientY - height / 2;
+
+      left = Math.max(
+        0,
+        Math.min(
+          window.innerWidth - width,
+          left
+        )
+      );
+
+      top = Math.max(
+        0,
+        Math.min(
+          window.innerHeight - height,
+          top
+        )
+      );
+
+      control.style.position = "fixed";
+      control.style.left =
+        `${left}px`;
+      control.style.top =
+        `${top}px`;
+      control.style.right = "auto";
+      control.style.bottom = "auto";
+      control.style.margin = "0";
+    };
+
+    const enablePositionEditing = () => {
+      if (!editing) return;
+
+      const controls = getControls();
+
+      controls.forEach((control) => {
+        control.style.cursor = "move";
+        control.style.outline =
+          "2px dashed white";
+
+        if (
+          control.dataset.mobileSupportDrag
+        ) {
+          return;
+        }
+
+        control.dataset.mobileSupportDrag =
+          "true";
+
+        let dragging = false;
+        let moved = false;
+
+        const startDrag = (event) => {
+          if (!editing) return;
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          dragging = true;
+          moved = false;
+
+          control.setPointerCapture?.(
+            event.pointerId
+          );
+
+          updatePositionForControl(
+            control,
+            event.clientX,
+            event.clientY
+          );
+        };
+
+        const moveDrag = (event) => {
+          if (!dragging || !editing) {
+            return;
+          }
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          moved = true;
+
+          updatePositionForControl(
+            control,
+            event.clientX,
+            event.clientY
+          );
+        };
+
+        const endDrag = (event) => {
+          if (!dragging) return;
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          dragging = false;
+
+          try {
+            control.releasePointerCapture?.(
+              event.pointerId
+            );
+          } catch {}
+
+          if (
+            moved &&
+            currentLayout !== "default" &&
+            layouts[currentLayout]
+          ) {
+            layouts[currentLayout]
+              .positions =
+              getControlPositions();
+
+            saveLayouts();
+          }
+        };
+
+        control.addEventListener(
+          "pointerdown",
+          startDrag
+        );
+
+        control.addEventListener(
+          "pointermove",
+          moveDrag
+        );
+
+        control.addEventListener(
+          "pointerup",
+          endDrag
+        );
+
+        control.addEventListener(
+          "pointercancel",
+          endDrag
+        );
+      });
+    };
+
+    const disablePositionEditing = () => {
+      getControls().forEach(
+        (control) => {
+          control.style.cursor = "";
+          control.style.outline = "";
+        }
+      );
     };
 
     const createSlider = (
@@ -176,30 +413,53 @@ class MobileSupportMod extends PolyMod {
       onChange,
       formatter
     ) => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "mobile-support-slider";
+      const wrapper =
+        document.createElement("div");
 
-      const label = document.createElement("div");
-      label.className = "mobile-support-slider-label";
+      wrapper.className =
+        "mobile-support-slider";
 
-      const labelName = document.createElement("span");
-      labelName.textContent = labelText;
+      const label =
+        document.createElement("div");
 
-      const valueText = document.createElement("span");
-      valueText.className = "mobile-support-slider-value";
-      valueText.textContent = formatter(value);
+      label.className =
+        "mobile-support-slider-label";
+
+      const labelName =
+        document.createElement("span");
+
+      labelName.textContent =
+        labelText;
+
+      const valueText =
+        document.createElement("span");
+
+      valueText.className =
+        "mobile-support-slider-value";
+
+      valueText.textContent =
+        formatter(value);
 
       label.appendChild(labelName);
       label.appendChild(valueText);
 
-      const track = document.createElement("div");
-      track.className = "mobile-support-slider-track";
+      const track =
+        document.createElement("div");
 
-      const fill = document.createElement("div");
-      fill.className = "mobile-support-slider-fill";
+      track.className =
+        "mobile-support-slider-track";
 
-      const knob = document.createElement("div");
-      knob.className = "mobile-support-slider-knob";
+      const fill =
+        document.createElement("div");
+
+      fill.className =
+        "mobile-support-slider-fill";
+
+      const knob =
+        document.createElement("div");
+
+      knob.className =
+        "mobile-support-slider-knob";
 
       track.appendChild(fill);
       track.appendChild(knob);
@@ -208,98 +468,112 @@ class MobileSupportMod extends PolyMod {
       wrapper.appendChild(track);
       parent.appendChild(wrapper);
 
-      let dragging = false;
-
-      const updateFromPointer = (clientX) => {
-        const rect = track.getBoundingClientRect();
+      const setValue = (clientX) => {
+        const rect =
+          track.getBoundingClientRect();
 
         let ratio =
-          (clientX - rect.left) / rect.width;
+          (clientX - rect.left) /
+          rect.width;
 
-        ratio = Math.max(0, Math.min(1, ratio));
+        ratio = Math.max(
+          0,
+          Math.min(1, ratio)
+        );
 
         let newValue =
-          min + ratio * (max - min);
+          min +
+          ratio * (max - min);
 
         newValue =
-          Math.round(newValue / step) * step;
+          Math.round(
+            newValue / step
+          ) * step;
 
         newValue =
-          Math.max(min, Math.min(max, newValue));
+          Math.max(
+            min,
+            Math.min(max, newValue)
+          );
 
         const percent =
-          ((newValue - min) / (max - min)) * 100;
+          ((newValue - min) /
+            (max - min)) *
+          100;
 
-        fill.style.width = `${percent}%`;
-        knob.style.left = `${percent}%`;
+        fill.style.width =
+          `${percent}%`;
 
-        valueText.textContent = formatter(newValue);
+        knob.style.left =
+          `${percent}%`;
+
+        valueText.textContent =
+          formatter(newValue);
 
         onChange(newValue);
       };
 
-      const pointerDown = (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        dragging = true;
-        updateFromPointer(event.clientX);
-      };
-
-      const pointerMove = (event) => {
-        if (!dragging) return;
-
-        event.preventDefault();
-        updateFromPointer(event.clientX);
-      };
-
-      const pointerUp = () => {
-        dragging = false;
-      };
-
-      track.addEventListener("mousedown", pointerDown);
-
-      document.addEventListener("mousemove", pointerMove);
-      document.addEventListener("mouseup", pointerUp);
-
       track.addEventListener(
-        "touchstart",
+        "pointerdown",
         (event) => {
           event.preventDefault();
           event.stopPropagation();
 
-          dragging = true;
-
-          updateFromPointer(
-            event.touches[0].clientX
+          track.setPointerCapture?.(
+            event.pointerId
           );
-        },
-        { passive: false }
+
+          setValue(event.clientX);
+        }
       );
 
-      document.addEventListener(
-        "touchmove",
+      track.addEventListener(
+        "pointermove",
         (event) => {
-          if (!dragging) return;
+          if (
+            !track.hasPointerCapture?.(
+              event.pointerId
+            )
+          ) {
+            return;
+          }
 
           event.preventDefault();
+          event.stopPropagation();
 
-          updateFromPointer(
-            event.touches[0].clientX
-          );
-        },
-        { passive: false }
+          setValue(event.clientX);
+        }
       );
 
-      document.addEventListener("touchend", pointerUp);
-
       const initialPercent =
-        ((value - min) / (max - min)) * 100;
+        ((value - min) /
+          (max - min)) *
+        100;
 
-      fill.style.width = `${initialPercent}%`;
-      knob.style.left = `${initialPercent}%`;
+      fill.style.width =
+        `${initialPercent}%`;
 
-      return wrapper;
+      knob.style.left =
+        `${initialPercent}%`;
+
+      return {
+        wrapper,
+        update: (newValue) => {
+          const percent =
+            ((newValue - min) /
+              (max - min)) *
+            100;
+
+          fill.style.width =
+            `${percent}%`;
+
+          knob.style.left =
+            `${percent}%`;
+
+          valueText.textContent =
+            formatter(newValue);
+        },
+      };
     };
 
     const closeControlsMenu = () => {
@@ -310,14 +584,18 @@ class MobileSupportMod extends PolyMod {
       activeMenu = null;
       editing = false;
 
+      disablePositionEditing();
+
+      menu.style.pointerEvents =
+        "none";
+
       menu.classList.remove(
         "mobile-support-fade-in"
       );
+
       menu.classList.add(
         "mobile-support-fade-out"
       );
-
-      menu.style.pointerEvents = "none";
 
       closingMenu = menu;
 
@@ -340,11 +618,14 @@ class MobileSupportMod extends PolyMod {
         closingMenu = null;
       }
 
-      const menu = document.createElement("div");
+      const menu =
+        document.createElement("div");
+
       menu.className =
         "mobile-support-menu mobile-support-fade-in";
 
-      const style = document.createElement("style");
+      const style =
+        document.createElement("style");
 
       style.textContent = `
         .mobile-support-menu {
@@ -352,7 +633,12 @@ class MobileSupportMod extends PolyMod {
           left: 50%;
           top: 50%;
           transform: translate(-50%, -50%);
+
           width: min(420px, 85vw);
+
+          max-height: 90vh;
+          overflow-y: auto;
+
           padding: 22px;
           box-sizing: border-box;
 
@@ -372,7 +658,8 @@ class MobileSupportMod extends PolyMod {
           font-weight: normal !important;
 
           box-shadow:
-            0 8px 30px rgba(0, 0, 0, 0.45);
+            0 8px 30px
+            rgba(0, 0, 0, 0.45);
         }
 
         .mobile-support-fade-in {
@@ -450,6 +737,7 @@ class MobileSupportMod extends PolyMod {
 
         .mobile-support-slider-track {
           position: relative;
+
           width: 100%;
           height: 14px;
 
@@ -457,10 +745,12 @@ class MobileSupportMod extends PolyMod {
           border-radius: 3px;
 
           touch-action: none;
+          user-select: none;
         }
 
         .mobile-support-slider-fill {
           position: absolute;
+
           left: 0;
           top: 0;
 
@@ -469,10 +759,13 @@ class MobileSupportMod extends PolyMod {
 
           background: #33477f;
           border-radius: 3px;
+
+          pointer-events: none;
         }
 
         .mobile-support-slider-knob {
           position: absolute;
+
           top: 50%;
 
           width: 32px;
@@ -485,6 +778,8 @@ class MobileSupportMod extends PolyMod {
 
           border: 5px solid #212b58;
           box-sizing: border-box;
+
+          pointer-events: none;
         }
 
         .mobile-support-layout {
@@ -507,20 +802,20 @@ class MobileSupportMod extends PolyMod {
           width: 100%;
           margin-top: 4px;
         }
-
-        .mobile-support-editing {
-          outline: 2px solid white;
-        }
       `;
 
       document.head.appendChild(style);
 
-      activeMenuStyle = style;
       activeMenu = menu;
 
-      const title = document.createElement("div");
-      title.className = "mobile-support-title";
-      title.textContent = "Edit Mobile";
+      const title =
+        document.createElement("div");
+
+      title.className =
+        "mobile-support-title";
+
+      title.textContent =
+        "Edit Mobile";
 
       menu.appendChild(title);
 
@@ -539,44 +834,77 @@ class MobileSupportMod extends PolyMod {
       settingsTitle.textContent =
         "Button Settings";
 
-      settingsSection.appendChild(settingsTitle);
-
-      createSlider(
-        settingsSection,
-        "Size",
-        0.75,
-        1.25,
-        currentSize,
-        0.01,
-        (value) => {
-          currentSize = value;
-
-          if (currentLayout !== "default") {
-            applySettings();
-          } else {
-            applySettings();
-          }
-        },
-        (value) =>
-          `${Math.round(value * 100)}%`
+      settingsSection.appendChild(
+        settingsTitle
       );
 
-      createSlider(
-        settingsSection,
-        "Opacity",
-        0.1,
-        1,
-        currentOpacity,
-        0.01,
-        (value) => {
-          currentOpacity = value;
-          applySettings();
-        },
-        (value) =>
-          `${Math.round(value * 100)}%`
+      const sizeSlider =
+        createSlider(
+          settingsSection,
+          "Size",
+          0.75,
+          1.25,
+          currentSize,
+          0.01,
+          (value) => {
+            if (!editing) return;
+
+            currentSize = value;
+
+            applySettings();
+          },
+          (value) =>
+            `${Math.round(
+              value * 100
+            )}%`
+        );
+
+      const opacitySlider =
+        createSlider(
+          settingsSection,
+          "Opacity",
+          0.1,
+          1,
+          currentOpacity,
+          0.01,
+          (value) => {
+            if (!editing) return;
+
+            currentOpacity = value;
+
+            applySettings();
+          },
+          (value) =>
+            `${Math.round(
+              value * 100
+            )}%`
+        );
+
+      menu.appendChild(
+        settingsSection
       );
 
-      menu.appendChild(settingsSection);
+      const positionHint =
+        document.createElement("div");
+
+      positionHint.style.fontSize =
+        "15px";
+
+      positionHint.style.opacity =
+        "0.7";
+
+      positionHint.style.textAlign =
+        "center";
+
+      positionHint.style.marginBottom =
+        "15px";
+
+      positionHint.textContent =
+        "Press Edit to move and customize a layout.";
+
+      menu.appendChild(
+        positionHint
+      );
 
       const layoutSection =
         document.createElement("div");
@@ -593,13 +921,101 @@ class MobileSupportMod extends PolyMod {
       layoutTitle.textContent =
         "Layouts";
 
-      layoutSection.appendChild(layoutTitle);
+      layoutSection.appendChild(
+        layoutTitle
+      );
 
       const layoutContainer =
         document.createElement("div");
 
       layoutContainer.className =
         "mobile-support-layout";
+
+      const slotRows = {};
+
+      const updateSliderUI = () => {
+        sizeSlider.update(
+          currentSize
+        );
+
+        opacitySlider.update(
+          currentOpacity
+        );
+      };
+
+      const updateEditingUI = () => {
+        settingsSection.style.display =
+          editing
+            ? "block"
+            : "none";
+
+        positionHint.style.display =
+          editing
+            ? "block"
+            : "none";
+
+        if (editing) {
+          enablePositionEditing();
+        } else {
+          disablePositionEditing();
+        }
+      };
+
+      const startEditing = (name) => {
+        if (!layouts[name]) {
+          layouts[name] = {
+            size: DEFAULT_SIZE,
+            opacity: DEFAULT_OPACITY,
+            positions: null,
+          };
+        }
+
+        currentLayout = name;
+        editing = true;
+
+        currentSize =
+          Math.max(
+            0.75,
+            Math.min(
+              1.25,
+              Number(
+                layouts[name].size
+              ) || DEFAULT_SIZE
+            )
+          );
+
+        currentOpacity =
+          Math.max(
+            0.1,
+            Math.min(
+              1,
+              Number(
+                layouts[name].opacity
+              ) || DEFAULT_OPACITY
+            )
+          );
+
+        applySettings();
+
+        if (layouts[name].positions) {
+          applyPositions(
+            layouts[name].positions
+          );
+        }
+
+        updateEditingUI();
+        updateSliderUI();
+      };
+
+      const useLayout = (name) => {
+        currentLayout = name;
+        editing = false;
+
+        applyCurrentLayout();
+
+        updateEditingUI();
+        updateSliderUI();
+      };
 
       const createLayoutRow = (
         name,
@@ -614,324 +1030,321 @@ class MobileSupportMod extends PolyMod {
         const nameButton =
           document.createElement("button");
 
-        nameButton.className = "button";
-        nameButton.textContent = displayName;
+        nameButton.className =
+          "button";
+
+        nameButton.textContent =
+          displayName;
 
         nameButton.addEventListener(
           "click",
           () => {
             if (name === "default") {
-              setLayout("default");
+              currentLayout =
+                "default";
+
+              editing = false;
+
+              restoreDefault();
+
+              updateEditingUI();
+              updateSliderUI();
+
               return;
             }
 
-            if (!layouts[name]) {
-              layouts[name] = {
-                size: currentSize,
-                opacity: currentOpacity,
-              };
-
-              saveLayouts();
-            }
-
-            setLayout(name);
-
-            refreshLayoutButtons();
+            useLayout(name);
           }
         );
 
-        row.appendChild(nameButton);
+        row.appendChild(
+          nameButton
+        );
 
         if (name !== "default") {
           const editButton =
-            document.createElement("button");
+            document.createElement(
+              "button"
+            );
 
-          editButton.className = "button";
-          editButton.textContent = "Edit";
+          editButton.className =
+            "button";
+
+          editButton.textContent =
+            "Edit";
 
           editButton.addEventListener(
             "click",
             () => {
-              if (!layouts[name]) {
-                layouts[name] = {
-                  size: DEFAULT_SIZE,
-                  opacity: DEFAULT_OPACITY,
-                };
-              }
-
-              currentLayout = name;
-
-              currentSize =
-                layouts[name].size;
-
-              currentOpacity =
-                layouts[name].opacity;
-
-              editing = true;
-
-              applySettings();
-              refreshLayoutButtons();
-              updateSliders();
+              startEditing(name);
             }
           );
 
           const useButton =
-            document.createElement("button");
+            document.createElement(
+              "button"
+            );
 
-          useButton.className = "button";
-          useButton.textContent = "Use";
+          useButton.className =
+            "button";
+
+          useButton.textContent =
+            "Use";
 
           useButton.addEventListener(
             "click",
             () => {
-              if (!layouts[name]) return;
-
-              setLayout(name);
-              refreshLayoutButtons();
-              updateSliders();
+              useLayout(name);
             }
           );
 
           const deleteButton =
-            document.createElement("button");
+            document.createElement(
+              "button"
+            );
 
-          deleteButton.className = "button";
-          deleteButton.textContent = "Delete";
+          deleteButton.className =
+            "button";
+
+          deleteButton.textContent =
+            "Delete";
 
           deleteButton.addEventListener(
             "click",
             () => {
               layouts[name] = null;
 
-              if (currentLayout === name) {
-                currentLayout = "default";
+              if (
+                currentLayout === name
+              ) {
+                currentLayout =
+                  "default";
+
+                editing = false;
+
                 restoreDefault();
               }
 
               saveLayouts();
 
               refreshLayoutButtons();
-              updateSliders();
+              updateEditingUI();
+              updateSliderUI();
             }
           );
 
-          row.appendChild(editButton);
-          row.appendChild(useButton);
-          row.appendChild(deleteButton);
+          row.appendChild(
+            editButton
+          );
+
+          row.appendChild(
+            useButton
+          );
+
+          row.appendChild(
+            deleteButton
+          );
         }
 
         return row;
       };
 
-      let slotRows = {};
-
-      const refreshLayoutButtons = () => {
-        Object.values(slotRows).forEach(
-          (row) => row.remove()
-        );
-
-        slotRows = {};
-
-        const defaultRow =
-          createLayoutRow(
-            "default",
-            "Default"
-          );
-
-        layoutContainer.appendChild(
-          defaultRow
-        );
-
-        slotRows.default = defaultRow;
-
-        if (layouts.slot1) {
-          const row =
-            createLayoutRow(
-              "slot1",
-              "Save 1"
-            );
-
-          layoutContainer.appendChild(row);
-          slotRows.slot1 = row;
-        } else {
-          const row =
-            document.createElement("div");
-
-          row.className =
-            "mobile-support-layout-row";
-
-          const createButton =
-            document.createElement("button");
-
-          createButton.className = "button";
-          createButton.textContent =
-            "Create Save 1";
-
-          createButton.addEventListener(
-            "click",
-            () => {
-              layouts.slot1 = {
-                size: currentSize,
-                opacity: currentOpacity,
-              };
-
-              currentLayout = "slot1";
-              editing = true;
-
-              saveLayouts();
-              applySettings();
-
-              refreshLayoutButtons();
-              updateSliders();
+      const refreshLayoutButtons =
+        () => {
+          Object.values(
+            slotRows
+          ).forEach(
+            (row) => {
+              if (row?.parentNode) {
+                row.remove();
+              }
             }
           );
 
-          row.appendChild(createButton);
-          layoutContainer.appendChild(row);
+          Object.keys(slotRows)
+            .forEach(
+              (key) => {
+                delete slotRows[key];
+              }
+            );
 
-          slotRows.slot1 = row;
-        }
-
-        if (layouts.slot2) {
-          const row =
+          const defaultRow =
             createLayoutRow(
-              "slot2",
-              "Save 2"
+              "default",
+              "Default"
             );
 
-          layoutContainer.appendChild(row);
-          slotRows.slot2 = row;
-        } else {
-          const row =
-            document.createElement("div");
-
-          row.className =
-            "mobile-support-layout-row";
-
-          const createButton =
-            document.createElement("button");
-
-          createButton.className = "button";
-          createButton.textContent =
-            "Create Save 2";
-
-          createButton.addEventListener(
-            "click",
-            () => {
-              layouts.slot2 = {
-                size: currentSize,
-                opacity: currentOpacity,
-              };
-
-              currentLayout = "slot2";
-              editing = true;
-
-              saveLayouts();
-              applySettings();
-
-              refreshLayoutButtons();
-              updateSliders();
-            }
+          layoutContainer.appendChild(
+            defaultRow
           );
 
-          row.appendChild(createButton);
-          layoutContainer.appendChild(row);
+          slotRows.default =
+            defaultRow;
 
-          slotRows.slot2 = row;
-        }
-      };
+          if (layouts.slot1) {
+            const row =
+              createLayoutRow(
+                "slot1",
+                "Save 1"
+              );
 
-      const updateSliders = () => {
-        const tracks =
-          menu.querySelectorAll(
-            ".mobile-support-slider-track"
-          );
-
-        if (tracks.length < 2) return;
-
-        const values = [
-          {
-            value: currentSize,
-            min: 0.75,
-            max: 1.25,
-          },
-          {
-            value: currentOpacity,
-            min: 0.1,
-            max: 1,
-          },
-        ];
-
-        tracks.forEach((track, index) => {
-          const data = values[index];
-
-          const percent =
-            ((data.value - data.min) /
-              (data.max - data.min)) *
-            100;
-
-          const fill =
-            track.querySelector(
-              ".mobile-support-slider-fill"
+            layoutContainer.appendChild(
+              row
             );
 
-          const knob =
-            track.querySelector(
-              ".mobile-support-slider-knob"
+            slotRows.slot1 = row;
+          } else {
+            const row =
+              document.createElement(
+                "div"
+              );
+
+            row.className =
+              "mobile-support-layout-row";
+
+            const button =
+              document.createElement(
+                "button"
+              );
+
+            button.className =
+              "button";
+
+            button.textContent =
+              "Create Save 1";
+
+            button.addEventListener(
+              "click",
+              () => {
+                layouts.slot1 = {
+                  size:
+                    currentSize,
+                  opacity:
+                    currentOpacity,
+                  positions:
+                    getControlPositions(),
+                };
+
+                saveLayouts();
+
+                startEditing(
+                  "slot1"
+                );
+
+                refreshLayoutButtons();
+              }
             );
 
-          const valueText =
-            track.parentElement.querySelector(
-              ".mobile-support-slider-value"
+            row.appendChild(button);
+
+            layoutContainer.appendChild(
+              row
             );
 
-          if (fill) {
-            fill.style.width =
-              `${percent}%`;
+            slotRows.slot1 = row;
           }
 
-          if (knob) {
-            knob.style.left =
-              `${percent}%`;
-          }
+          if (layouts.slot2) {
+            const row =
+              createLayoutRow(
+                "slot2",
+                "Save 2"
+              );
 
-          if (valueText) {
-            valueText.textContent =
-              index === 0
-                ? `${Math.round(
-                    data.value * 100
-                  )}%`
-                : `${Math.round(
-                    data.value * 100
-                  )}%`;
+            layoutContainer.appendChild(
+              row
+            );
+
+            slotRows.slot2 = row;
+          } else {
+            const row =
+              document.createElement(
+                "div"
+              );
+
+            row.className =
+              "mobile-support-layout-row";
+
+            const button =
+              document.createElement(
+                "button"
+              );
+
+            button.className =
+              "button";
+
+            button.textContent =
+              "Create Save 2";
+
+            button.addEventListener(
+              "click",
+              () => {
+                layouts.slot2 = {
+                  size:
+                    currentSize,
+                  opacity:
+                    currentOpacity,
+                  positions:
+                    getControlPositions(),
+                };
+
+                saveLayouts();
+
+                startEditing(
+                  "slot2"
+                );
+
+                refreshLayoutButtons();
+              }
+            );
+
+            row.appendChild(button);
+
+            layoutContainer.appendChild(
+              row
+            );
+
+            slotRows.slot2 = row;
           }
-        });
-      };
+        };
 
       layoutSection.appendChild(
         layoutContainer
       );
 
-      menu.appendChild(layoutSection);
+      menu.appendChild(
+        layoutSection
+      );
 
       const closeButton =
-        document.createElement("button");
+        document.createElement(
+          "button"
+        );
 
       closeButton.className =
         "button mobile-support-close";
 
-      closeButton.textContent = "Close";
+      closeButton.textContent =
+        "Close";
 
       closeButton.addEventListener(
         "click",
         () => {
           if (
             editing &&
-            currentLayout !== "default"
+            currentLayout !==
+              "default" &&
+            layouts[currentLayout]
           ) {
             layouts[currentLayout] = {
-              size: currentSize,
-              opacity: currentOpacity,
+              size:
+                currentSize,
+
+              opacity:
+                currentOpacity,
+
+              positions:
+                getControlPositions(),
             };
 
             saveLayouts();
@@ -941,13 +1354,16 @@ class MobileSupportMod extends PolyMod {
         }
       );
 
-      menu.appendChild(closeButton);
+      menu.appendChild(
+        closeButton
+      );
 
-      const blockGameTouch = (event) => {
-        if (!activeMenu) return;
+      const blockGameTouch =
+        (event) => {
+          if (!activeMenu) return;
 
-        event.stopPropagation();
-      };
+          event.stopPropagation();
+        };
 
       menu.addEventListener(
         "touchstart",
@@ -997,63 +1413,79 @@ class MobileSupportMod extends PolyMod {
         true
       );
 
+      document.body.appendChild(
+        menu
+      );
+
       refreshLayoutButtons();
-      updateSliders();
-
-      document.body.appendChild(menu);
-
-      if (currentLayout === "default") {
-        restoreDefault();
-      } else {
-        applySettings();
-      }
-    };
-
-    const createEditButton = () => {
-      const toolbar =
-        document.querySelector(
-          ".game-toolbar-ui > .button-container"
-        );
-
-      if (!toolbar) return;
+      updateSliderUI();
+      updateEditingUI();
 
       if (
-        toolbar.querySelector(
-          ".mobile-support-edit-button"
-        )
+        currentLayout ===
+        "default"
       ) {
-        return;
+        restoreDefault();
+      } else {
+        applyCurrentLayout();
       }
 
-      const watchButton =
-        [...toolbar.children].find(
-          (child) =>
-            child.textContent?.trim() ===
-            "Watch"
+      updateSliderUI();
+      updateEditingUI();
+    };
+
+    const createEditButton =
+      () => {
+        const toolbar =
+          document.querySelector(
+            ".game-toolbar-ui > .button-container"
+          );
+
+        if (!toolbar) return;
+
+        if (
+          toolbar.querySelector(
+            ".mobile-support-edit-button"
+          )
+        ) {
+          return;
+        }
+
+        const watchButton =
+          [
+            ...toolbar.children,
+          ].find(
+            (child) =>
+              child.textContent
+                ?.trim() ===
+              "Watch"
+          );
+
+        if (!watchButton) return;
+
+        const button =
+          document.createElement(
+            "button"
+          );
+
+        button.className =
+          "button mobile-support-edit-button";
+
+        button.textContent =
+          "Edit Mobile";
+
+        button.addEventListener(
+          "click",
+          () => {
+            openControlsMenu();
+          }
         );
 
-      if (!watchButton) return;
-
-      const button =
-        document.createElement("button");
-
-      button.className =
-        "button mobile-support-edit-button";
-
-      button.textContent = "Edit Mobile";
-
-      button.addEventListener(
-        "click",
-        () => {
-          openControlsMenu();
-        }
-      );
-
-      watchButton.insertAdjacentElement(
-        "afterend",
-        button
-      );
-    };
+        watchButton.insertAdjacentElement(
+          "afterend",
+          button
+        );
+      };
 
     loadLayouts();
 
@@ -1072,12 +1504,15 @@ class MobileSupportMod extends PolyMod {
 
         createEditButton();
 
-        if (
-          currentLayout === "default"
-        ) {
-          restoreDefault();
-        } else {
-          applySettings();
+        if (!activeMenu) {
+          if (
+            currentLayout ===
+            "default"
+          ) {
+            restoreDefault();
+          } else {
+            applyCurrentLayout();
+          }
         }
       });
 
@@ -1093,10 +1528,13 @@ class MobileSupportMod extends PolyMod {
       "touchcancel",
       () => {
         const touchEnd =
-          new TouchEvent("touchend", {
-            bubbles: true,
-            cancelable: true,
-          });
+          new TouchEvent(
+            "touchend",
+            {
+              bubbles: true,
+              cancelable: true,
+            }
+          );
 
         document.dispatchEvent(
           touchEnd
