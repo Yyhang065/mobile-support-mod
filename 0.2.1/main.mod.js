@@ -185,7 +185,7 @@ class MobileSupportMod extends PolyMod {
       /*
        * Keep the checkpoint flag attached
        * to the restart button and scale it
-       * together with the button.
+       * with the button.
        */
       const reset =
         getButtons().reset;
@@ -278,10 +278,8 @@ class MobileSupportMod extends PolyMod {
     };
 
     /*
-     * Close the menu completely.
-     *
-     * This is also used when PolyTrack
-     * leaves the run.
+     * Completely close the Mobile Controls
+     * menu and remove its temporary styling.
      */
     const closeControlsMenu = () => {
       if (editing) {
@@ -618,6 +616,10 @@ class MobileSupportMod extends PolyMod {
 
           touch-action:
             none !important;
+
+          user-select: none;
+
+          -webkit-user-select: none;
         }
 
         .mobile-support-panel {
@@ -682,11 +684,6 @@ class MobileSupportMod extends PolyMod {
           font-size: 17px;
         }
 
-        /*
-         * Use PolyTrack's actual .button
-         * class so these buttons get the
-         * normal PolyTrack press animation.
-         */
         .mobile-support-layout-button,
         .mobile-support-button {
           font-family:
@@ -848,6 +845,71 @@ class MobileSupportMod extends PolyMod {
 
       document.head.appendChild(
         style
+      );
+
+      /*
+       * IMPORTANT:
+       *
+       * PolyTrack listens for touch events
+       * globally. Stop touches originating
+       * inside our menu from bubbling to the
+       * gameplay controls.
+       */
+      const blockGameTouch =
+        (event) => {
+          if (!activeMenu) {
+            return;
+          }
+
+          event.stopPropagation();
+        };
+
+      menu.addEventListener(
+        "touchstart",
+        blockGameTouch,
+        {
+          capture: true,
+          passive: false,
+        }
+      );
+
+      menu.addEventListener(
+        "touchmove",
+        blockGameTouch,
+        {
+          capture: true,
+          passive: false,
+        }
+      );
+
+      menu.addEventListener(
+        "touchend",
+        blockGameTouch,
+        {
+          capture: true,
+          passive: false,
+        }
+      );
+
+      menu.addEventListener(
+        "touchcancel",
+        blockGameTouch,
+        {
+          capture: true,
+          passive: false,
+        }
+      );
+
+      menu.addEventListener(
+        "mousedown",
+        blockGameTouch,
+        true
+      );
+
+      menu.addEventListener(
+        "mouseup",
+        blockGameTouch,
+        true
       );
 
       const layoutList =
@@ -1309,8 +1371,6 @@ class MobileSupportMod extends PolyMod {
           /*
            * If the gameplay controls
            * disappeared, the run ended.
-           *
-           * Close the editor immediately.
            */
           if (
             activeMenu &&
