@@ -17,16 +17,21 @@ class MobileSupportMod extends PolyMod {
     let editingLayout = false;
     let editingPosition = false;
 
+    let activeMenu = null;
+    let closingMenu = null;
+
+    let editMobileButton = null;
+
+    let positionSnapshot = null;
+
     let layouts = {
       slot1: null,
       slot2: null,
     };
 
-    let activeMenu = null;
-    let closingMenu = null;
-    let menuStyle = null;
-
-    let editMobileButton = null;
+    /* -------------------------------------------------- */
+    /* STORAGE                                             */
+    /* -------------------------------------------------- */
 
     const loadLayouts = () => {
       try {
@@ -49,7 +54,8 @@ class MobileSupportMod extends PolyMod {
                   DEFAULT_OPACITY,
 
                 positions:
-                  parsed.slot1.positions || null,
+                  parsed.slot1.positions ||
+                  null,
               }
             : null,
 
@@ -64,7 +70,8 @@ class MobileSupportMod extends PolyMod {
                   DEFAULT_OPACITY,
 
                 positions:
-                  parsed.slot2.positions || null,
+                  parsed.slot2.positions ||
+                  null,
               }
             : null,
         };
@@ -83,13 +90,18 @@ class MobileSupportMod extends PolyMod {
       );
     };
 
+    /* -------------------------------------------------- */
+    /* CONTROLS                                            */
+    /* -------------------------------------------------- */
+
     const getTouchControls = () =>
       document.querySelector(
         ".touch-controls-ui"
       );
 
     const getControls = () => {
-      const root = getTouchControls();
+      const root =
+        getTouchControls();
 
       if (!root) return [];
 
@@ -101,71 +113,88 @@ class MobileSupportMod extends PolyMod {
     };
 
     const disableGameplayControls = () => {
-      const root = getTouchControls();
+      const root =
+        getTouchControls();
 
       if (!root) return;
 
       root.classList.add(
-        "mobile-support-game-disabled"
+        "mobile-support-disabled"
       );
     };
 
     const enableGameplayControls = () => {
-      const root = getTouchControls();
+      const root =
+        getTouchControls();
 
       if (!root) return;
 
       root.classList.remove(
-        "mobile-support-game-disabled"
+        "mobile-support-disabled"
       );
     };
 
+    /* -------------------------------------------------- */
+    /* SIZE / OPACITY                                      */
+    /* -------------------------------------------------- */
+
     const restoreDefault = () => {
-      currentSize = DEFAULT_SIZE;
-      currentOpacity = DEFAULT_OPACITY;
+      currentSize =
+        DEFAULT_SIZE;
 
-      const controls = getControls();
+      currentOpacity =
+        DEFAULT_OPACITY;
 
-      controls.forEach((control) => {
-        control.style.width = "";
-        control.style.height = "";
-        control.style.opacity = "";
+      getControls().forEach(
+        (control) => {
+          control.style.width = "";
+          control.style.height = "";
+          control.style.opacity = "";
 
-        control.style.position = "";
-        control.style.left = "";
-        control.style.top = "";
-        control.style.right = "";
-        control.style.bottom = "";
-        control.style.margin = "";
+          control.style.position = "";
+          control.style.left = "";
+          control.style.top = "";
+          control.style.right = "";
+          control.style.bottom = "";
+          control.style.margin = "";
 
-        control.style.outline = "";
-        control.style.cursor = "";
+          control.style.outline = "";
+          control.style.cursor = "";
 
-        control.style.backgroundSize = "";
-        control.style.backgroundPosition = "";
-      });
+          control.style.backgroundSize = "";
+          control.style.backgroundPosition = "";
+        }
+      );
     };
 
     const applySettings = () => {
-      const controls = getControls();
+      const controls =
+        getControls();
 
-      const size = Math.max(
-        0.75,
-        Math.min(1.25, currentSize)
+      const size =
+        Math.max(
+          0.75,
+          Math.min(
+            1.25,
+            currentSize
+          )
+        );
+
+      const finalSize =
+        160 * size;
+
+      controls.forEach(
+        (control) => {
+          control.style.width =
+            `${finalSize}px`;
+
+          control.style.height =
+            `${finalSize}px`;
+
+          control.style.opacity =
+            currentOpacity;
+        }
       );
-
-      const finalSize = 160 * size;
-
-      controls.forEach((control) => {
-        control.style.width =
-          `${finalSize}px`;
-
-        control.style.height =
-          `${finalSize}px`;
-
-        control.style.opacity =
-          currentOpacity;
-      });
 
       const reset =
         document.querySelector(
@@ -180,6 +209,10 @@ class MobileSupportMod extends PolyMod {
           "center";
       }
     };
+
+    /* -------------------------------------------------- */
+    /* POSITIONS                                           */
+    /* -------------------------------------------------- */
 
     const getControlPositions = () => {
       return getControls().map(
@@ -203,9 +236,10 @@ class MobileSupportMod extends PolyMod {
     const applyPositions = (
       positions
     ) => {
-      const controls = getControls();
-
       if (!positions) return;
+
+      const controls =
+        getControls();
 
       controls.forEach(
         (control, index) => {
@@ -235,69 +269,36 @@ class MobileSupportMod extends PolyMod {
       );
     };
 
-    const applyLayout = (
-      layoutName
-    ) => {
-      if (layoutName === "default") {
-        restoreDefault();
+    const savePositionSnapshot = () => {
+      positionSnapshot =
+        getControlPositions();
+    };
+
+    const restorePositionSnapshot = () => {
+      if (!positionSnapshot) {
         return;
       }
 
-      const layout =
-        layouts[layoutName];
-
-      if (!layout) {
-        restoreDefault();
-        return;
-      }
-
-      currentSize = Math.max(
-        0.75,
-        Math.min(
-          1.25,
-          Number(layout.size) ||
-            DEFAULT_SIZE
-        )
-      );
-
-      currentOpacity = Math.max(
-        0.1,
-        Math.min(
-          1,
-          Number(layout.opacity) ||
-            DEFAULT_OPACITY
-        )
-      );
-
-      applySettings();
-
-      if (layout.positions) {
-        applyPositions(
-          layout.positions
-        );
-      }
-    };
-
-    const clearPositionOutlines = () => {
-      getControls().forEach(
-        (control) => {
-          control.style.outline = "";
-          control.style.cursor = "";
-        }
+      applyPositions(
+        positionSnapshot
       );
     };
+
+    /* -------------------------------------------------- */
+    /* POSITION VALIDATION                                 */
+    /* -------------------------------------------------- */
 
     const checkPositionValidity = () => {
       const controls =
         getControls();
-
-      let valid = true;
 
       const rectangles =
         controls.map(
           (control) =>
             control.getBoundingClientRect()
         );
+
+      let valid = true;
 
       controls.forEach(
         (control, index) => {
@@ -325,7 +326,9 @@ class MobileSupportMod extends PolyMod {
             }
 
             const other =
-              rectangles[otherIndex];
+              rectangles[
+                otherIndex
+              ];
 
             const overlapWidth =
               Math.min(
@@ -374,80 +377,29 @@ class MobileSupportMod extends PolyMod {
       return valid;
     };
 
-    const saveCurrentPositioning = () => {
-      if (
-        !editingPosition ||
-        currentLayout === "default"
-      ) {
-        return;
-      }
-
-      if (
-        !layouts[currentLayout]
-      ) {
-        return;
-      }
-
-      if (
-        !checkPositionValidity()
-      ) {
-        return;
-      }
-
-      layouts[currentLayout] = {
-        size: currentSize,
-        opacity: currentOpacity,
-        positions:
-          getControlPositions(),
-      };
-
-      saveLayouts();
-
-      editingPosition = false;
-      editingLayout = false;
-
-      clearPositionOutlines();
-      enableGameplayControls();
-
-      if (editMobileButton) {
-        editMobileButton.textContent =
-          "Edit Mobile";
-      }
-
-      applyLayout(
-        currentLayout
-      );
-    };
-
-    const positionPointerDown =
-      (event) => {
-        if (!editingPosition) {
-          return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-      };
+    /* -------------------------------------------------- */
+    /* POSITION DRAGGING                                   */
+    /* -------------------------------------------------- */
 
     const setupPositionDragging =
       () => {
-        const controls =
-          getControls();
-
-        controls.forEach(
+        getControls().forEach(
           (control) => {
             if (
               control.dataset
-                .mobileSupportPositionReady
+                .mobileSupportDragging
             ) {
               return;
             }
 
             control.dataset
-              .mobileSupportPositionReady =
+              .mobileSupportDragging =
               "true";
 
             let dragging = false;
+
+            let offsetX = 0;
+            let offsetY = 0;
 
             control.addEventListener(
               "pointerdown",
@@ -463,26 +415,20 @@ class MobileSupportMod extends PolyMod {
 
                 dragging = true;
 
-                control.setPointerCapture?.(
-                  event.pointerId
-                );
-
                 const rect =
                   control.getBoundingClientRect();
 
-                control.dataset
-                  .mobileSupportDragOffsetX =
-                  String(
-                    event.clientX -
-                      rect.left
-                  );
+                offsetX =
+                  event.clientX -
+                  rect.left;
 
-                control.dataset
-                  .mobileSupportDragOffsetY =
-                  String(
-                    event.clientY -
-                      rect.top
-                  );
+                offsetY =
+                  event.clientY -
+                  rect.top;
+
+                control.setPointerCapture?.(
+                  event.pointerId
+                );
 
                 checkPositionValidity();
               }
@@ -500,18 +446,6 @@ class MobileSupportMod extends PolyMod {
 
                 event.preventDefault();
                 event.stopPropagation();
-
-                const offsetX =
-                  Number(
-                    control.dataset
-                      .mobileSupportDragOffsetX
-                  ) || 0;
-
-                const offsetY =
-                  Number(
-                    control.dataset
-                      .mobileSupportDragOffsetY
-                  ) || 0;
 
                 let left =
                   event.clientX -
@@ -576,10 +510,15 @@ class MobileSupportMod extends PolyMod {
         );
       };
 
+    /* -------------------------------------------------- */
+    /* POSITION EDITING                                    */
+    /* -------------------------------------------------- */
+
     const enterPositionEditing =
       () => {
         if (
-          currentLayout === "default"
+          currentLayout ===
+          "default"
         ) {
           return;
         }
@@ -590,60 +529,101 @@ class MobileSupportMod extends PolyMod {
           return;
         }
 
+        savePositionSnapshot();
+
+        editingLayout =
+          false;
+
+        editingPosition =
+          true;
+
         if (activeMenu) {
-          activeMenu.classList.remove(
-            "mobile-support-fade-in"
-          );
-
-          activeMenu.classList.add(
-            "mobile-support-fade-out"
-          );
-
-          const oldMenu =
+          const menu =
             activeMenu;
 
           activeMenu = null;
 
+          menu.style.pointerEvents =
+            "none";
+
+          menu.classList.remove(
+            "mobile-support-fade-in"
+          );
+
+          menu.classList.add(
+            "mobile-support-fade-out"
+          );
+
           setTimeout(() => {
-            if (
-              oldMenu.parentNode
-            ) {
-              oldMenu.remove();
+            if (menu.parentNode) {
+              menu.remove();
             }
           }, 250);
         }
 
-        layouts[currentLayout] = {
-          size: currentSize,
-          opacity: currentOpacity,
-          positions:
-            getControlPositions(),
-        };
-
-        saveLayouts();
-
-        editingLayout = false;
-        editingPosition = true;
-
         disableGameplayControls();
+
+        setupPositionDragging();
 
         if (editMobileButton) {
           editMobileButton.textContent =
             "Save Positioning";
         }
 
-        setupPositionDragging();
-
-        requestAnimationFrame(() => {
-          checkPositionValidity();
-        });
+        requestAnimationFrame(
+          () => {
+            checkPositionValidity();
+          }
+        );
       };
 
-    const exitPositionEditing =
+    const saveCurrentPositioning =
       () => {
-        editingPosition = false;
+        if (
+          !editingPosition ||
+          currentLayout ===
+            "default"
+        ) {
+          return;
+        }
 
-        clearPositionOutlines();
+        const valid =
+          checkPositionValidity();
+
+        if (!valid) {
+          return;
+        }
+
+        if (
+          !layouts[currentLayout]
+        ) {
+          return;
+        }
+
+        layouts[currentLayout]
+          .positions =
+          getControlPositions();
+
+        saveLayouts();
+
+        editingPosition =
+          false;
+
+        editingLayout =
+          false;
+
+        positionSnapshot =
+          null;
+
+        getControls().forEach(
+          (control) => {
+            control.style.outline =
+              "";
+            control.style.cursor =
+              "";
+          }
+        );
+
         enableGameplayControls();
 
         if (editMobileButton) {
@@ -651,16 +631,50 @@ class MobileSupportMod extends PolyMod {
             "Edit Mobile";
         }
 
-        if (
-          currentLayout !==
-            "default" &&
-          layouts[currentLayout]
-        ) {
-          applyLayout(
-            currentLayout
-          );
-        }
+        openControlsMenu();
       };
+
+    const returnToMenu =
+      () => {
+        if (
+          !editingPosition
+        ) {
+          return;
+        }
+
+        restorePositionSnapshot();
+
+        editingPosition =
+          false;
+
+        editingLayout =
+          true;
+
+        positionSnapshot =
+          null;
+
+        getControls().forEach(
+          (control) => {
+            control.style.outline =
+              "";
+            control.style.cursor =
+              "";
+          }
+        );
+
+        enableGameplayControls();
+
+        if (editMobileButton) {
+          editMobileButton.textContent =
+            "Edit Mobile";
+        }
+
+        openLayoutEditor();
+      };
+
+    /* -------------------------------------------------- */
+    /* SLIDER                                              */
+    /* -------------------------------------------------- */
 
     const createSlider = (
       parent,
@@ -760,7 +774,10 @@ class MobileSupportMod extends PolyMod {
 
           ratio = Math.max(
             0,
-            Math.min(1, ratio)
+            Math.min(
+              1,
+              ratio
+            )
           );
 
           let newValue =
@@ -804,7 +821,9 @@ class MobileSupportMod extends PolyMod {
       track.addEventListener(
         "pointerdown",
         (event) => {
-          if (!editingLayout) {
+          if (
+            !editingLayout
+          ) {
             return;
           }
 
@@ -842,64 +861,50 @@ class MobileSupportMod extends PolyMod {
         }
       );
 
-      const update = (
-        newValue
-      ) => {
-        const percent =
-          ((newValue - min) /
-            (max - min)) *
-          100;
+      const update =
+        (newValue) => {
+          const percent =
+            ((newValue - min) /
+              (max - min)) *
+            100;
 
-        fill.style.width =
-          `${percent}%`;
+          fill.style.width =
+            `${percent}%`;
 
-        knob.style.left =
-          `${percent}%`;
+          knob.style.left =
+            `${percent}%`;
 
-        valueText.textContent =
-          `${Math.round(
-            newValue * 100
-          )}%`;
-      };
+          valueText.textContent =
+            `${Math.round(
+              newValue * 100
+            )}%`;
+        };
 
       update(value);
 
       return update;
     };
 
+    /* -------------------------------------------------- */
+    /* CLOSE MENU                                          */
+    /* -------------------------------------------------- */
+
     const closeControlsMenu =
-      (save = true) => {
+      () => {
         if (!activeMenu) {
           return;
         }
 
-        if (
-          save &&
-          editingLayout &&
-          currentLayout !==
-            "default" &&
-          layouts[currentLayout]
-        ) {
-          layouts[currentLayout] = {
-            size: currentSize,
-            opacity: currentOpacity,
-            positions:
-              layouts[currentLayout]
-                .positions ||
-              null,
-          };
-
-          saveLayouts();
-        }
-
-        editingLayout = false;
-
-        enableGameplayControls();
-
         const menu =
           activeMenu;
 
-        activeMenu = null;
+        activeMenu =
+          null;
+
+        editingLayout =
+          false;
+
+        enableGameplayControls();
 
         menu.style.pointerEvents =
           "none";
@@ -912,53 +917,30 @@ class MobileSupportMod extends PolyMod {
           "mobile-support-fade-out"
         );
 
-        closingMenu = menu;
+        closingMenu =
+          menu;
 
         setTimeout(() => {
-          if (
-            menu.parentNode
-          ) {
+          if (menu.parentNode) {
             menu.remove();
           }
 
           if (
-            menuStyle ===
-            menu._mobileSupportStyle
+            closingMenu ===
+            menu
           ) {
-            menuStyle.remove();
-            menuStyle = null;
-          }
-
-          if (
-            closingMenu === menu
-          ) {
-            closingMenu = null;
+            closingMenu =
+              null;
           }
         }, 250);
       };
 
-    const openControlsMenu =
+    /* -------------------------------------------------- */
+    /* COMMON MENU STYLE                                   */
+    /* -------------------------------------------------- */
+
+    const createMenuStyle =
       () => {
-        if (
-          activeMenu ||
-          editingPosition
-        ) {
-          return;
-        }
-
-        if (closingMenu) {
-          closingMenu.remove();
-          closingMenu = null;
-        }
-
-        const menu =
-          document.createElement(
-            "div"
-          );
-
-        menu.className =
-          "mobile-support-menu mobile-support-fade-in";
-
         const style =
           document.createElement(
             "style"
@@ -980,6 +962,7 @@ class MobileSupportMod extends PolyMod {
             overflow-y: auto;
 
             padding: 22px;
+
             box-sizing: border-box;
 
             background: #212b58;
@@ -1049,13 +1032,17 @@ class MobileSupportMod extends PolyMod {
 
           .mobile-support-title {
             font-size: 24px;
+
             margin-bottom: 18px;
+
             text-align: center;
           }
 
           .mobile-support-layouts {
             display: flex;
+
             flex-direction: column;
+
             gap: 10px;
           }
 
@@ -1069,39 +1056,30 @@ class MobileSupportMod extends PolyMod {
 
             gap: 8px;
 
-            align-items: stretch;
+            align-items: center;
           }
 
-          .mobile-support-layout-row
-            > .mobile-support-layout-name {
+          .mobile-support-layout-name {
+            background: none !important;
+
+            box-shadow: none !important;
+
+            cursor: default !important;
+
+            pointer-events: none !important;
+
             text-align: left;
+
+            padding-left: 0 !important;
           }
 
-          .mobile-support-layout-row
-            > .button {
-            font-size: 24px !important;
-            white-space: nowrap;
-          }
-
-          .mobile-support-layout-row
-            > .mobile-support-selected {
+          .mobile-support-selected {
             background-color:
               #33477f !important;
           }
 
-          .mobile-support-layout-row
-            > .mobile-support-disabled {
-            opacity: 0.35;
-            pointer-events: none;
-          }
-
           .mobile-support-edit-section {
             margin-bottom: 18px;
-          }
-
-          .mobile-support-edit-section-title {
-            font-size: 24px;
-            margin-bottom: 14px;
           }
 
           .mobile-support-slider {
@@ -1110,7 +1088,10 @@ class MobileSupportMod extends PolyMod {
 
           .mobile-support-slider-label {
             display: flex;
-            justify-content: space-between;
+
+            justify-content:
+              space-between;
+
             align-items: center;
 
             margin-bottom: 8px;
@@ -1126,12 +1107,13 @@ class MobileSupportMod extends PolyMod {
             position: relative;
 
             width: 100%;
+
             height: 14px;
 
-            background:
-              #141c3a;
+            background: #141c3a;
 
             touch-action: none;
+
             user-select: none;
           }
 
@@ -1142,10 +1124,8 @@ class MobileSupportMod extends PolyMod {
             top: 0;
 
             height: 100%;
-            width: 50%;
 
-            background:
-              #33477f;
+            background: #33477f;
 
             pointer-events: none;
           }
@@ -1173,23 +1153,58 @@ class MobileSupportMod extends PolyMod {
 
           .mobile-support-position-button {
             width: 100%;
+
             margin-top: 4px;
+
+            font-size: 24px !important;
+          }
+
+          .mobile-support-save-layout {
+            width: 100%;
+
+            margin-top: 10px;
 
             font-size: 24px !important;
           }
 
           .mobile-support-close {
             width: 100%;
+
             margin-top: 18px;
 
             font-size: 24px !important;
           }
 
-          .mobile-support-game-disabled {
+          .mobile-support-position-buttons {
+            display: grid;
+
+            grid-template-columns:
+              1fr 1fr;
+
+            gap: 8px;
+
+            position: fixed;
+
+            left: 50%;
+
+            bottom: 18px;
+
+            transform:
+              translateX(-50%);
+
+            z-index: 999999;
+          }
+
+          .mobile-support-position-buttons
+            .button {
+            white-space: nowrap;
+          }
+
+          .mobile-support-disabled {
             pointer-events: none !important;
           }
 
-          .mobile-support-game-disabled * {
+          .mobile-support-disabled * {
             pointer-events: none !important;
           }
         `;
@@ -1198,11 +1213,40 @@ class MobileSupportMod extends PolyMod {
           style
         );
 
-        menu._mobileSupportStyle =
-          style;
+        return style;
+      };
 
-        menuStyle = style;
-        activeMenu = menu;
+    /* -------------------------------------------------- */
+    /* EDIT LAYOUT MENU                                    */
+    /* -------------------------------------------------- */
+
+    const openLayoutEditor =
+      () => {
+        if (
+          activeMenu ||
+          editingPosition
+        ) {
+          return;
+        }
+
+        if (closingMenu) {
+          closingMenu.remove();
+          closingMenu = null;
+        }
+
+        const menu =
+          document.createElement(
+            "div"
+          );
+
+        menu.className =
+          "mobile-support-menu mobile-support-fade-in";
+
+        const style =
+          createMenuStyle();
+
+        activeMenu =
+          menu;
 
         disableGameplayControls();
 
@@ -1217,74 +1261,65 @@ class MobileSupportMod extends PolyMod {
         title.textContent =
           "Edit Mobile";
 
-        menu.appendChild(title);
-
-        const editSection =
-          document.createElement(
-            "div"
-          );
-
-        editSection.className =
-          "mobile-support-edit-section";
-
-        const editTitle =
-          document.createElement(
-            "div"
-          );
-
-        editTitle.className =
-          "mobile-support-edit-section-title";
-
-        editTitle.textContent =
-          "Edit Layout";
-
-        editSection.appendChild(
-          editTitle
+        menu.appendChild(
+          title
         );
+
+        const sliderSection =
+          document.createElement(
+            "div"
+          );
+
+        sliderSection.className =
+          "mobile-support-edit-section";
 
         const sizeSlider =
           createSlider(
-            editSection,
+            sliderSection,
             "Size",
             0.75,
             1.25,
             currentSize,
             0.01,
             (value) => {
+              if (
+                !editingLayout
+              ) {
+                return;
+              }
+
               currentSize =
                 value;
 
               applySettings();
-
-              if (
-                editingPosition
-              ) {
-                checkPositionValidity();
-              }
             }
           );
 
         const opacitySlider =
           createSlider(
-            editSection,
+            sliderSection,
             "Opacity",
             0.1,
             1,
             currentOpacity,
             0.01,
             (value) => {
+              if (
+                !editingLayout
+              ) {
+                return;
+              }
+
               currentOpacity =
                 value;
 
               applySettings();
-
-              if (
-                editingPosition
-              ) {
-                checkPositionValidity();
-              }
             }
           );
+
+        menu.appendChild(
+          sliderSection
+        );
 
         const positionButton =
           document.createElement(
@@ -1295,357 +1330,72 @@ class MobileSupportMod extends PolyMod {
           "button mobile-support-position-button";
 
         positionButton.textContent =
-          "Press to Edit Position";
+          "Press to Edit Positioning";
 
         positionButton.addEventListener(
           "click",
           () => {
-            if (
-              !editingLayout ||
-              currentLayout ===
-                "default"
-            ) {
-              return;
-            }
-
-            layouts[currentLayout] = {
-              size: currentSize,
-              opacity:
-                currentOpacity,
-              positions:
-                layouts[currentLayout]
-                  .positions ||
-                getControlPositions(),
-            };
-
-            saveLayouts();
-
             enterPositionEditing();
           }
         );
 
-        editSection.appendChild(
+        menu.appendChild(
           positionButton
         );
 
-        editSection.style.display =
-          "none";
-
-        menu.appendChild(
-          editSection
-        );
-
-        const layoutsSection =
-          document.createElement(
-            "div"
-          );
-
-        layoutsSection.className =
-          "mobile-support-edit-section";
-
-        const layoutsTitle =
-          document.createElement(
-            "div"
-          );
-
-        layoutsTitle.className =
-          "mobile-support-edit-section-title";
-
-        layoutsTitle.textContent =
-          "Layouts";
-
-        layoutsSection.appendChild(
-          layoutsTitle
-        );
-
-        const layoutsContainer =
-          document.createElement(
-            "div"
-          );
-
-        layoutsContainer.className =
-          "mobile-support-layouts";
-
-        layoutsSection.appendChild(
-          layoutsContainer
-        );
-
-        menu.appendChild(
-          layoutsSection
-        );
-
-        const updateEditUI =
-          () => {
-            editSection.style.display =
-              editingLayout
-                ? "block"
-                : "none";
-
-            sizeSlider(
-              currentSize
-            );
-
-            opacitySlider(
-              currentOpacity
-            );
-          };
-
-        const refreshLayouts =
-          () => {
-            layoutsContainer.innerHTML =
-              "";
-
-            const createRow =
-              (
-                name,
-                displayName
-              ) => {
-                const row =
-                  document.createElement(
-                    "div"
-                  );
-
-                row.className =
-                  "mobile-support-layout-row";
-
-                const nameButton =
-                  document.createElement(
-                    "button"
-                  );
-
-                nameButton.className =
-                  "button mobile-support-layout-name";
-
-                nameButton.textContent =
-                  displayName;
-
-                row.appendChild(
-                  nameButton
-                );
-
-                const useButton =
-                  document.createElement(
-                    "button"
-                  );
-
-                useButton.className =
-                  "button";
-
-                useButton.textContent =
-                  "Use";
-
-                if (
-                  name ===
-                    currentLayout
-                ) {
-                  useButton.classList.add(
-                    "mobile-support-selected"
-                  );
-                }
-
-                if (
-                  name !==
-                    "default" &&
-                  !layouts[name]
-                ) {
-                  useButton.classList.add(
-                    "mobile-support-disabled"
-                  );
-                }
-
-                useButton.addEventListener(
-                  "click",
-                  () => {
-                    if (
-                      name !==
-                        "default" &&
-                      !layouts[name]
-                    ) {
-                      return;
-                    }
-
-                    if (
-                      editingLayout &&
-                      currentLayout !==
-                        "default" &&
-                      layouts[
-                        currentLayout
-                      ]
-                    ) {
-                      layouts[
-                        currentLayout
-                      ] = {
-                        size:
-                          currentSize,
-                        opacity:
-                          currentOpacity,
-                        positions:
-                          layouts[
-                            currentLayout
-                          ].positions ||
-                          null,
-                      };
-
-                      saveLayouts();
-                    }
-
-                    editingLayout =
-                      false;
-
-                    currentLayout =
-                      name;
-
-                    applyLayout(
-                      name
-                    );
-
-                    updateEditUI();
-                    refreshLayouts();
-                  }
-                );
-
-                row.appendChild(
-                  useButton
-                );
-
-                if (
-                  name !==
-                    "default"
-                ) {
-                  const editButton =
-                    document.createElement(
-                      "button"
-                    );
-
-                  editButton.className =
-                    "button";
-
-                  editButton.textContent =
-                    "Edit";
-
-                  editButton.addEventListener(
-                    "click",
-                    () => {
-                      if (
-                        !layouts[name]
-                      ) {
-                        layouts[name] = {
-                          size:
-                            currentSize,
-                          opacity:
-                            currentOpacity,
-                          positions:
-                            getControlPositions(),
-                        };
-
-                        saveLayouts();
-                      }
-
-                      currentLayout =
-                        name;
-
-                      editingLayout =
-                        true;
-
-                      currentSize =
-                        Math.max(
-                          0.75,
-                          Math.min(
-                            1.25,
-                            Number(
-                              layouts[
-                                name
-                              ].size
-                            ) ||
-                              DEFAULT_SIZE
-                          )
-                        );
-
-                      currentOpacity =
-                        Math.max(
-                          0.1,
-                          Math.min(
-                            1,
-                            Number(
-                              layouts[
-                                name
-                              ].opacity
-                            ) ||
-                              DEFAULT_OPACITY
-                          )
-                        );
-
-                      applySettings();
-
-                      if (
-                        layouts[name]
-                          .positions
-                      ) {
-                        applyPositions(
-                          layouts[name]
-                            .positions
-                        );
-                      }
-
-                      disableGameplayControls();
-
-                      updateEditUI();
-                      refreshLayouts();
-                    }
-                  );
-
-                  row.appendChild(
-                    editButton
-                  );
-                }
-
-                return row;
-              };
-
-            layoutsContainer.appendChild(
-              createRow(
-                "default",
-                "Default Layout"
-              )
-            );
-
-            layoutsContainer.appendChild(
-              createRow(
-                "slot1",
-                "Custom Layout 1"
-              )
-            );
-
-            layoutsContainer.appendChild(
-              createRow(
-                "slot2",
-                "Custom Layout 2"
-              )
-            );
-          };
-
-        const closeButton =
+        const saveLayoutButton =
           document.createElement(
             "button"
           );
 
-        closeButton.className =
-          "button mobile-support-close";
+        saveLayoutButton.className =
+          "button mobile-support-save-layout";
 
-        closeButton.textContent =
-          "Close";
+        saveLayoutButton.textContent =
+          "Save Layout";
 
-        closeButton.addEventListener(
+        saveLayoutButton.addEventListener(
           "click",
           () => {
-            closeControlsMenu(
-              true
-            );
+            if (
+              currentLayout ===
+                "default" ||
+              !layouts[
+                currentLayout
+              ]
+            ) {
+              return;
+            }
+
+            layouts[
+              currentLayout
+            ] = {
+              size:
+                currentSize,
+
+              opacity:
+                currentOpacity,
+
+              positions:
+                layouts[
+                  currentLayout
+                ].positions ||
+                null,
+            };
+
+            saveLayouts();
+
+            editingLayout =
+              false;
+
+            enableGameplayControls();
+
+            closeLayoutMenuAndOpenList();
           }
         );
 
         menu.appendChild(
-          closeButton
+          saveLayoutButton
         );
 
         const blockMenuTouch =
@@ -1715,23 +1465,484 @@ class MobileSupportMod extends PolyMod {
           menu
         );
 
-        refreshLayouts();
-        updateEditUI();
+        /* Force the correct values */
+        sizeSlider(
+          currentSize
+        );
+
+        opacitySlider(
+          currentOpacity
+        );
 
         if (
-          currentLayout ===
-          "default"
+          currentLayout !==
+            "default" &&
+          layouts[currentLayout]
         ) {
-          editingLayout = false;
-          restoreDefault();
-        } else {
-          applyLayout(
-            currentLayout
-          );
+          applySettings();
+
+          if (
+            layouts[currentLayout]
+              .positions
+          ) {
+            applyPositions(
+              layouts[
+                currentLayout
+              ].positions
+            );
+          }
+        }
+      };
+
+    /* -------------------------------------------------- */
+    /* LIST MENU                                           */
+    /* -------------------------------------------------- */
+
+    const closeLayoutMenuAndOpenList =
+      () => {
+        if (!activeMenu) {
+          openLayoutList();
+          return;
         }
 
-        updateEditUI();
+        const menu =
+          activeMenu;
+
+        activeMenu = null;
+
+        menu.style.pointerEvents =
+          "none";
+
+        menu.classList.remove(
+          "mobile-support-fade-in"
+        );
+
+        menu.classList.add(
+          "mobile-support-fade-out"
+        );
+
+        setTimeout(() => {
+          if (menu.parentNode) {
+            menu.remove();
+          }
+
+          openLayoutList();
+        }, 250);
       };
+
+    const openLayoutList =
+      () => {
+        if (
+          activeMenu ||
+          editingPosition
+        ) {
+          return;
+        }
+
+        const menu =
+          document.createElement(
+            "div"
+          );
+
+        menu.className =
+          "mobile-support-menu mobile-support-fade-in";
+
+        createMenuStyle();
+
+        activeMenu =
+          menu;
+
+        disableGameplayControls();
+
+        const title =
+          document.createElement(
+            "div"
+          );
+
+        title.className =
+          "mobile-support-title";
+
+        title.textContent =
+          "Edit Mobile";
+
+        menu.appendChild(
+          title
+        );
+
+        const layoutsContainer =
+          document.createElement(
+            "div"
+          );
+
+        layoutsContainer.className =
+          "mobile-support-layouts";
+
+        const createLayoutRow =
+          (
+            name,
+            displayName,
+            canEdit
+          ) => {
+            const row =
+              document.createElement(
+                "div"
+              );
+
+            row.className =
+              "mobile-support-layout-row";
+
+            const nameText =
+              document.createElement(
+                "button"
+              );
+
+            nameText.className =
+              "mobile-support-layout-name";
+
+            nameText.textContent =
+              displayName;
+
+            row.appendChild(
+              nameText
+            );
+
+            const useButton =
+              document.createElement(
+                "button"
+              );
+
+            useButton.className =
+              "button";
+
+            useButton.textContent =
+              "Use";
+
+            if (
+              name ===
+                currentLayout
+            ) {
+              useButton.classList.add(
+                "mobile-support-selected"
+              );
+            }
+
+            if (
+              name !==
+                "default" &&
+              !layouts[name]
+            ) {
+              useButton.disabled =
+                true;
+
+              useButton.classList.add(
+                "mobile-support-disabled"
+              );
+            }
+
+            useButton.addEventListener(
+              "click",
+              () => {
+                if (
+                  name !==
+                    "default" &&
+                  !layouts[name]
+                ) {
+                  return;
+                }
+
+                currentLayout =
+                  name;
+
+                editingLayout =
+                  false;
+
+                applyLayout(
+                  name
+                );
+
+                closeControlsMenu();
+              }
+            );
+
+            row.appendChild(
+              useButton
+            );
+
+            if (canEdit) {
+              const editButton =
+                document.createElement(
+                  "button"
+                );
+
+              editButton.className =
+                "button";
+
+              editButton.textContent =
+                "Edit";
+
+              editButton.addEventListener(
+                "click",
+                () => {
+                  if (
+                    !layouts[name]
+                  ) {
+                    layouts[name] = {
+                      size:
+                        DEFAULT_SIZE,
+
+                      opacity:
+                        DEFAULT_OPACITY,
+
+                      positions:
+                        getControlPositions(),
+                    };
+
+                    saveLayouts();
+                  }
+
+                  currentLayout =
+                    name;
+
+                  currentSize =
+                    Math.max(
+                      0.75,
+                      Math.min(
+                        1.25,
+                        Number(
+                          layouts[
+                            name
+                          ].size
+                        ) ||
+                          DEFAULT_SIZE
+                      )
+                    );
+
+                  currentOpacity =
+                    Math.max(
+                      0.1,
+                      Math.min(
+                        1,
+                        Number(
+                          layouts[
+                            name
+                          ].opacity
+                        ) ||
+                          DEFAULT_OPACITY
+                      )
+                    );
+
+                  editingLayout =
+                    true;
+
+                  applySettings();
+
+                  if (
+                    layouts[name]
+                      .positions
+                  ) {
+                    applyPositions(
+                      layouts[name]
+                        .positions
+                    );
+                  }
+
+                  const oldMenu =
+                    activeMenu;
+
+                  activeMenu =
+                    null;
+
+                  oldMenu.style.pointerEvents =
+                    "none";
+
+                  oldMenu.classList.remove(
+                    "mobile-support-fade-in"
+                  );
+
+                  oldMenu.classList.add(
+                    "mobile-support-fade-out"
+                  );
+
+                  setTimeout(() => {
+                    if (
+                      oldMenu.parentNode
+                    ) {
+                      oldMenu.remove();
+                    }
+
+                    openLayoutEditor();
+                  }, 250);
+                }
+              );
+
+              row.appendChild(
+                editButton
+              );
+            }
+
+            return row;
+          };
+
+        layoutsContainer.appendChild(
+          createLayoutRow(
+            "default",
+            "Default Layout",
+            false
+          )
+        );
+
+        layoutsContainer.appendChild(
+          createLayoutRow(
+            "slot1",
+            "Custom Layout 1",
+            true
+          )
+        );
+
+        layoutsContainer.appendChild(
+          createLayoutRow(
+            "slot2",
+            "Custom Layout 2",
+            true
+          )
+        );
+
+        menu.appendChild(
+          layoutsContainer
+        );
+
+        const closeButton =
+          document.createElement(
+            "button"
+          );
+
+        closeButton.className =
+          "button mobile-support-close";
+
+        closeButton.textContent =
+          "Close";
+
+        closeButton.addEventListener(
+          "click",
+          () => {
+            closeControlsMenu();
+          }
+        );
+
+        menu.appendChild(
+          closeButton
+        );
+
+        const blockMenuTouch =
+          (event) => {
+            if (!activeMenu) {
+              return;
+            }
+
+            event.stopPropagation();
+          };
+
+        menu.addEventListener(
+          "touchstart",
+          blockMenuTouch,
+          {
+            capture: true,
+            passive: false,
+          }
+        );
+
+        menu.addEventListener(
+          "touchmove",
+          blockMenuTouch,
+          {
+            capture: true,
+            passive: false,
+          }
+        );
+
+        menu.addEventListener(
+          "touchend",
+          blockMenuTouch,
+          {
+            capture: true,
+            passive: false,
+          }
+        );
+
+        menu.addEventListener(
+          "touchcancel",
+          blockMenuTouch,
+          {
+            capture: true,
+            passive: false,
+          }
+        );
+
+        document.body.appendChild(
+          menu
+        );
+      };
+
+    /* -------------------------------------------------- */
+    /* APPLY LAYOUT                                        */
+    /* -------------------------------------------------- */
+
+    const applyLayout =
+      (name) => {
+        if (
+          name ===
+          "default"
+        ) {
+          restoreDefault();
+          return;
+        }
+
+        const layout =
+          layouts[name];
+
+        if (!layout) {
+          restoreDefault();
+          return;
+        }
+
+        currentSize =
+          Math.max(
+            0.75,
+            Math.min(
+              1.25,
+              Number(
+                layout.size
+              ) ||
+                DEFAULT_SIZE
+            )
+          );
+
+        currentOpacity =
+          Math.max(
+            0.1,
+            Math.min(
+              1,
+              Number(
+                layout.opacity
+              ) ||
+                DEFAULT_OPACITY
+            )
+          );
+
+        applySettings();
+
+        if (
+          layout.positions
+        ) {
+          applyPositions(
+            layout.positions
+          );
+        }
+      };
+
+    /* -------------------------------------------------- */
+    /* EDIT MOBILE BUTTON                                  */
+    /* -------------------------------------------------- */
 
     const createEditButton =
       () => {
@@ -1740,7 +1951,9 @@ class MobileSupportMod extends PolyMod {
             ".game-toolbar-ui > .button-container"
           );
 
-        if (!toolbar) return;
+        if (!toolbar) {
+          return;
+        }
 
         let button =
           toolbar.querySelector(
@@ -1750,6 +1963,11 @@ class MobileSupportMod extends PolyMod {
         if (button) {
           editMobileButton =
             button;
+
+          button.textContent =
+            editingPosition
+              ? "Save Positioning"
+              : "Edit Mobile";
 
           return;
         }
@@ -1788,10 +2006,9 @@ class MobileSupportMod extends PolyMod {
               editingPosition
             ) {
               saveCurrentPositioning();
-              return;
+            } else {
+              openLayoutList();
             }
-
-            openControlsMenu();
           }
         );
 
@@ -1803,6 +2020,10 @@ class MobileSupportMod extends PolyMod {
         editMobileButton =
           button;
       };
+
+    /* -------------------------------------------------- */
+    /* OBSERVER                                            */
+    /* -------------------------------------------------- */
 
     loadLayouts();
 
@@ -1816,15 +2037,7 @@ class MobileSupportMod extends PolyMod {
 
           if (!controls) {
             if (activeMenu) {
-              closeControlsMenu(
-                false
-              );
-            }
-
-            if (
-              editingPosition
-            ) {
-              exitPositionEditing();
+              closeControlsMenu();
             }
 
             return;
@@ -1833,19 +2046,33 @@ class MobileSupportMod extends PolyMod {
           createEditButton();
           setupPositionDragging();
 
+          /*
+           * IMPORTANT:
+           * While editing the position, NEVER
+           * reapply the saved layout.
+           *
+           * This prevents the controls from
+           * jumping back while dragging.
+           */
           if (
             editingPosition
           ) {
+            disableGameplayControls();
             checkPositionValidity();
             return;
           }
 
-          if (
-            activeMenu
-          ) {
+          /*
+           * While a menu is open, leave the
+           * controls alone.
+           */
+          if (activeMenu) {
             return;
           }
 
+          /*
+           * Normal gameplay.
+           */
           if (
             currentLayout ===
             "default"
@@ -1866,6 +2093,10 @@ class MobileSupportMod extends PolyMod {
         subtree: true,
       }
     );
+
+    /* -------------------------------------------------- */
+    /* TOUCH CANCEL FIX                                    */
+    /* -------------------------------------------------- */
 
     document.addEventListener(
       "touchcancel",
